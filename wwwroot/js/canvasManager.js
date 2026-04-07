@@ -46,17 +46,18 @@ class CanvasManager {
     }
 
     async addChart(partial) {
+        const defaults = this.getDefaultsForType(partial.chartType || 'bar');
         const chart = {
             id: 'c' + Date.now(),
             chartType: partial.chartType || 'bar',
             title: partial.title || 'New Chart',
-            datasetName: partial.datasetName || 'sales',
+            datasetName: partial.datasetName || defaults.datasetName,
             width: partial.width || 6,
             height: partial.height || 300,
             gridCol: 0,
             gridRow: this.nextRow++,
-            mapping: partial.mapping || { labelField: 'month', valueField: 'revenue', groupByField: '', xField: '', yField: '', rField: '', multiValueFields: [] },
-            aggregation: partial.aggregation || { function: 'SUM', enabled: true },
+            mapping: partial.mapping || defaults.mapping,
+            aggregation: partial.aggregation || defaults.aggregation,
             style: partial.style || { backgroundColor: '#4A90D9', borderColor: '#2C6FAC', showLegend: true, legendPosition: 'top', showTooltips: true, fillArea: false, colorPalette: 'default', showDataLabels: false, fontFamily: 'Inter, sans-serif', titleFontSize: 14, animated: true, responsive: true, borderRadius: '4' },
             customJsonData: partial.customJsonData || ''
         };
@@ -201,6 +202,63 @@ class CanvasManager {
         this.charts = canvas.charts || [];
         this.renderAll();
         this.initSortable();
+    }
+
+    getDefaultsForType(chartType) {
+        // OHLC / candlestick charts use finance dataset with open/high/low/close fields
+        if (['candlestick', 'ohlc'].includes(chartType)) {
+            return {
+                datasetName: 'finance',
+                mapping: { labelField: 'ticker', valueField: 'close', groupByField: '', xField: 'open', yField: 'close', rField: '', multiValueFields: [] },
+                aggregation: { function: 'SUM', enabled: false }
+            };
+        }
+        // Bubble / bubble map use x/y/r fields from sales
+        if (['bubble', 'bubbleMap'].includes(chartType)) {
+            return {
+                datasetName: 'sales',
+                mapping: { labelField: 'month', valueField: 'revenue', groupByField: '', xField: 'units', yField: 'revenue', rField: 'profit', multiValueFields: [] },
+                aggregation: { function: 'SUM', enabled: false }
+            };
+        }
+        // Multi-series charts that benefit from groupByField
+        if (['mixedBarLine', 'groupedBar', 'streamGraph', 'stackedArea100', 'populationPyramid', 'pairedBar'].includes(chartType)) {
+            return {
+                datasetName: 'sales',
+                mapping: { labelField: 'month', valueField: 'revenue', groupByField: 'region', xField: '', yField: '', rField: '', multiValueFields: [] },
+                aggregation: { function: 'SUM', enabled: false }
+            };
+        }
+        // Financial/time charts prefer finance dataset
+        if (['timeLine', 'rangeArea', 'stepLine', 'regressionLine'].includes(chartType)) {
+            return {
+                datasetName: 'finance',
+                mapping: { labelField: 'ticker', valueField: 'close', groupByField: '', xField: '', yField: '', rField: '', multiValueFields: [] },
+                aggregation: { function: 'SUM', enabled: false }
+            };
+        }
+        // Weather dataset suits some statistical charts
+        if (['bellCurve', 'histogram', 'boxPlot', 'violin', 'controlChart', 'confidenceBand', 'errorBar'].includes(chartType)) {
+            return {
+                datasetName: 'weather',
+                mapping: { labelField: 'city', valueField: 'temperature', groupByField: '', xField: '', yField: '', rField: '', multiValueFields: [] },
+                aggregation: { function: 'AVG', enabled: true }
+            };
+        }
+        // Population dataset suits population/demographic charts
+        if (['populationPyramid', 'dotPlot', 'dumbbell', 'slope', 'divergingBar'].includes(chartType)) {
+            return {
+                datasetName: 'population',
+                mapping: { labelField: 'country', valueField: 'population', groupByField: '', xField: '', yField: '', rField: '', multiValueFields: [] },
+                aggregation: { function: 'SUM', enabled: false }
+            };
+        }
+        // Default: sales dataset
+        return {
+            datasetName: 'sales',
+            mapping: { labelField: 'month', valueField: 'revenue', groupByField: '', xField: '', yField: '', rField: '', multiValueFields: [] },
+            aggregation: { function: 'SUM', enabled: true }
+        };
     }
 }
 
