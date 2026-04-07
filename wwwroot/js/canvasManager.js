@@ -245,8 +245,8 @@ class CanvasManager {
                 aggregation: { function: 'AVG', enabled: true }
             };
         }
-        // Population dataset suits population/demographic charts
-        if (['populationPyramid', 'dotPlot', 'dumbbell', 'slope', 'divergingBar'].includes(chartType)) {
+        // Population dataset suits demographic charts (populationPyramid is handled in multi-series above)
+        if (['dotPlot', 'dumbbell', 'slope', 'divergingBar'].includes(chartType)) {
             return {
                 datasetName: 'population',
                 mapping: { labelField: 'country', valueField: 'population', groupByField: '', xField: '', yField: '', rField: '', multiValueFields: [] },

@@ -1594,7 +1594,7 @@ class ChartRenderer {
         const total = values.reduce((a, b) => a + Math.abs(b), 0) || 1;
         const colors = this.getColors(palette, labels.length);
         const cellsPerValue = values.map(v => Math.round(Math.abs(v) / total * 100));
-        // Ensure cells sum to exactly 100
+        // Adjust last cell to correct rounding error and ensure all 100 grid squares are filled
         const diff = 100 - cellsPerValue.reduce((a, b) => a + b, 0);
         if (cellsPerValue.length > 0) cellsPerValue[cellsPerValue.length - 1] = Math.max(0, cellsPerValue[cellsPerValue.length - 1] + diff);
 
@@ -1608,6 +1608,8 @@ class ChartRenderer {
                 let colorIdx = 0, filled = 0;
                 for (let row = 0; row < 10; row++) {
                     for (let col = 0; col < 10; col++) {
+                        // Advance to next value segment; skip zero-cell segments to avoid
+                        // stalling on empty values (each iteration moves colorIdx forward)
                         while (colorIdx < cellsPerValue.length && filled >= cellsPerValue[colorIdx]) {
                             colorIdx++;
                             filled = 0;
