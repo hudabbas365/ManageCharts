@@ -1,0 +1,230 @@
+/* === CSS Variables === */
+:root {
+    --primary: #4A90D9;
+    --primary-dark: #2C6FAC;
+    --primary-light: #E8F2FC;
+    --secondary: #6c757d;
+    --success: #28a745;
+    --bg-main: #F4F6F9;
+    --bg-panel: #FFFFFF;
+    --bg-hover: #EEF4FB;
+    --border-color: #DEE3EA;
+    --text-main: #2C3E50;
+    --text-muted: #8492A6;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.10);
+    --radius: 8px;
+    --navbar-h: 52px;
+    --library-w: 260px;
+    --properties-w: 300px;
+    --transition: all 0.2s ease;
+}
+
+/* === Reset & Base === */
+* { box-sizing: border-box; }
+body { font-family: 'Inter', sans-serif; background: var(--bg-main); color: var(--text-main); margin: 0; overflow: hidden; height: 100vh; }
+.font-monospace { font-family: 'Fira Code', monospace; }
+.form-label { font-size: 0.75rem; font-weight: 500; color: var(--text-muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.4px; }
+.form-control, .form-select { font-size: 0.82rem; border-color: var(--border-color); }
+.form-control:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74,144,217,0.15); }
+
+/* === App Shell === */
+.app-shell { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+/* === Navbar === */
+.app-navbar {
+    display: flex; align-items: center;
+    height: var(--navbar-h); min-height: var(--navbar-h);
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0 16px;
+    box-shadow: var(--shadow-sm);
+    z-index: 100;
+    gap: 8px;
+    flex-shrink: 0;
+}
+.navbar-brand { display: flex; align-items: center; font-weight: 700; font-size: 1.1rem; color: var(--text-main); min-width: 160px; }
+.brand-text { color: var(--primary); }
+.navbar-title { display: flex; align-items: center; flex: 1; }
+.canvas-name { font-size: 0.9rem; font-weight: 500; color: var(--text-muted); cursor: pointer; }
+.canvas-name:hover { color: var(--primary); }
+.navbar-actions { display: flex; align-items: center; gap: 4px; }
+.btn-ghost { background: none; border: none; padding: 2px 6px; color: var(--text-muted); }
+.btn-ghost:hover { color: var(--primary); background: var(--bg-hover); border-radius: 4px; }
+
+/* === App Body === */
+.app-body { display: flex; flex: 1; overflow: hidden; }
+
+/* === Panel Base === */
+.panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-panel);
+    font-size: 0.82rem; font-weight: 600;
+    flex-shrink: 0;
+}
+
+/* === Library Panel === */
+.library-panel {
+    width: var(--library-w);
+    min-width: var(--library-w);
+    background: var(--bg-panel);
+    border-right: 1px solid var(--border-color);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+.search-wrap { border-bottom: 1px solid var(--border-color); }
+.library-scroll { flex: 1; overflow-y: auto; padding: 4px 0; }
+.library-scroll::-webkit-scrollbar { width: 4px; }
+.library-scroll::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+
+.library-group { }
+.library-group-header {
+    display: flex; align-items: center;
+    padding: 7px 12px;
+    cursor: pointer;
+    font-size: 0.75rem; font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    background: var(--bg-main);
+    border-top: 1px solid var(--border-color);
+    user-select: none;
+    transition: var(--transition);
+}
+.library-group-header:hover { background: var(--bg-hover); color: var(--primary); }
+.library-group-header .bi-chevron-down { transition: transform 0.2s; }
+.library-group-header.collapsed .bi-chevron-down { transform: rotate(-90deg); }
+.group-name { flex: 1; }
+
+.library-items { padding: 2px 0; }
+.library-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 16px;
+    cursor: grab;
+    font-size: 0.8rem;
+    color: var(--text-main);
+    transition: var(--transition);
+    border-radius: 0;
+    user-select: none;
+}
+.library-item:hover { background: var(--bg-hover); color: var(--primary); }
+.library-item.dragging { opacity: 0.5; cursor: grabbing; }
+.library-item i { font-size: 0.9rem; color: var(--primary); width: 16px; }
+
+/* === Canvas Panel === */
+.canvas-panel {
+    flex: 1;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+    background: var(--bg-main);
+}
+.canvas-toolbar {
+    display: flex; align-items: center;
+    padding: 8px 16px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+    gap: 8px;
+}
+.canvas-scroll {
+    flex: 1;
+    overflow-y: auto;
+    position: relative;
+}
+.canvas-scroll::-webkit-scrollbar { width: 6px; }
+.canvas-scroll::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 3px; }
+
+.chart-grid { min-height: 100%; }
+.chart-grid.drop-active { border: 2px dashed var(--primary); background: var(--primary-light); }
+.chart-grid.drag-over { background: var(--primary-light); }
+
+/* === Chart Card === */
+.chart-card {
+    background: var(--bg-panel);
+    border-radius: var(--radius);
+    border: 2px solid transparent;
+    box-shadow: var(--shadow-sm);
+    transition: var(--transition);
+    overflow: hidden;
+    cursor: pointer;
+}
+.chart-card:hover { border-color: var(--primary-light); box-shadow: var(--shadow-md); }
+.chart-card.selected { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(74,144,217,0.2); }
+.chart-card.chart-ghost { opacity: 0.4; background: var(--primary-light); }
+
+.chart-card-header {
+    display: flex; align-items: center;
+    padding: 8px 10px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.8rem; font-weight: 500;
+}
+.chart-title { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chart-drag-handle { cursor: grab; color: var(--text-muted); }
+.chart-drag-handle:hover { color: var(--primary); }
+.chart-card-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.2s; }
+.chart-card:hover .chart-card-actions { opacity: 1; }
+.btn-xs { padding: 2px 6px; font-size: 0.7rem; border: none; background: none; border-radius: 4px; cursor: pointer; color: var(--text-muted); }
+.btn-xs:hover { background: var(--bg-hover); color: var(--primary); }
+.btn-xs.text-danger:hover { color: #dc3545 !important; background: #fff0f0; }
+.btn-icon { display: flex; align-items: center; justify-content: center; width: 24px; height: 24px; }
+
+.chart-canvas-wrap {
+    padding: 8px;
+    position: relative;
+}
+.chart-canvas-wrap canvas { width: 100% !important; }
+
+/* === Empty States === */
+.empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+}
+.empty-state button { pointer-events: all; }
+
+.empty-state-small {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 30px 20px;
+    text-align: center;
+    flex: 1;
+}
+.empty-state-small i { font-size: 2rem; }
+
+/* === Properties Panel === */
+.properties-panel {
+    width: var(--properties-w);
+    min-width: var(--properties-w);
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border-color);
+    display: flex; flex-direction: column;
+    overflow: hidden;
+}
+.properties-scroll {
+    flex: 1;
+    overflow-y: auto;
+}
+.properties-scroll::-webkit-scrollbar { width: 4px; }
+.properties-scroll::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 2px; }
+
+.prop-section { margin-bottom: 16px; }
+.prop-section-title {
+    font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--primary);
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--primary-light);
+}
+
+/* === Responsive === */
+@media (max-width: 1024px) {
+    :root { --library-w: 200px; --properties-w: 250px; }
+}
+@media (max-width: 768px) {
+    .library-panel, .properties-panel { display: none; }
+    .canvas-panel { flex: 1; }
+}
