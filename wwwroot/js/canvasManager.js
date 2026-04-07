@@ -131,19 +131,13 @@ class CanvasManager {
         this.updateEmptyState();
     }
 
-    escapeHtml(str) {
-        const div = document.createElement('div');
-        div.appendChild(document.createTextNode(str));
-        return div.innerHTML;
-    }
-
     renderChart(chartDef) {
         const container = document.getElementById('chart-canvas-drop');
         if (!container) return;
 
         const col = this.getColClass(chartDef.width || 6);
-        const safeId = this.escapeHtml(chartDef.id);
-        const safeTitle = this.escapeHtml(chartDef.title || 'Chart');
+        const safeId = escapeHtml(chartDef.id);
+        const safeTitle = escapeHtml(chartDef.title || 'Chart');
         const card = document.createElement('div');
         card.className = `chart-card col-${col}`;
         card.dataset.chartId = chartDef.id;

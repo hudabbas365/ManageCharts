@@ -41,7 +41,8 @@ class ExportManager {
                 window.canvasManager.renderAll();
             }
         } catch(e) {
-            alert('Invalid JSON file: ' + e.message);
+            console.error('Import failed:', e);
+            alert('Could not import file. Please ensure it is a valid report JSON export.');
         }
     }
 }

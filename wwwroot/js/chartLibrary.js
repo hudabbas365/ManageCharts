@@ -1,3 +1,10 @@
+// Shared HTML escape utility (loaded first, used by all modules)
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(String(str ?? '')));
+    return div.innerHTML;
+}
+
 // Chart type library manager - handles the left panel
 class ChartLibrary {
     constructor() {
