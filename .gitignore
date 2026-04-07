@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+*.user
+appsettings.Development.json
+.DS_Store
+*.suo
+*.userosscache
+*.sln.docstates
+node_modules/
+wwwroot/lib/

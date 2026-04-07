@@ -1,0 +1,15 @@
+@model ManageCharts.Models.ChartDefinition
+<div class="chart-card" data-chart-id="@Model.Id">
+    <div class="chart-card-header">
+        <i class="bi bi-grip-vertical chart-drag-handle text-muted me-2"></i>
+        <span class="chart-title">@Model.Title</span>
+        <div class="chart-card-actions ms-auto">
+            <button class="btn btn-xs btn-icon" title="Edit"><i class="bi bi-pencil"></i></button>
+            <button class="btn btn-xs btn-icon" title="Duplicate"><i class="bi bi-copy"></i></button>
+            <button class="btn btn-xs btn-icon text-danger" title="Delete"><i class="bi bi-trash"></i></button>
+        </div>
+    </div>
+    <div class="chart-canvas-wrap" style="height: @(Model.Height)px">
+        <canvas id="canvas-@Model.Id"></canvas>
+    </div>
+</div>

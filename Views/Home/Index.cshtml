@@ -1,0 +1,279 @@
+@model ManageCharts.Models.CanvasState
+@{
+    ViewData["Title"] = "Report Designer";
+    var canvasName = ViewBag.CanvasName as string ?? "My Report";
+}
+
+<div class="app-shell">
+    <!-- Top Navbar -->
+    <nav class="app-navbar">
+        <div class="navbar-brand">
+            <i class="bi bi-bar-chart-fill text-primary me-2"></i>
+            <span class="brand-text">ManageCharts</span>
+        </div>
+        <div class="navbar-title">
+            <span id="canvas-name-display" class="canvas-name">@canvasName</span>
+            <button class="btn btn-xs btn-ghost ms-2" onclick="promptRename()" title="Rename">
+                <i class="bi bi-pencil-square"></i>
+            </button>
+        </div>
+        <div class="navbar-actions ms-auto">
+            <button class="btn btn-sm btn-outline-secondary me-1" onclick="exportManager.exportPng()" title="Export PNG">
+                <i class="bi bi-image me-1"></i>PNG
+            </button>
+            <button class="btn btn-sm btn-outline-secondary me-1" onclick="exportManager.exportPdf()" title="Export PDF">
+                <i class="bi bi-file-pdf me-1"></i>PDF
+            </button>
+            <button class="btn btn-sm btn-outline-secondary me-1" onclick="exportManager.exportJson()" title="Export JSON">
+                <i class="bi bi-download me-1"></i>JSON
+            </button>
+            <label class="btn btn-sm btn-outline-secondary me-2" title="Import JSON">
+                <i class="bi bi-upload me-1"></i>Import
+                <input type="file" accept=".json" onchange="exportManager.importJson(this.files[0])" style="display:none">
+            </label>
+            <button class="btn btn-sm btn-danger" onclick="canvasManager.resetCanvas()" title="Reset">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+            </button>
+        </div>
+    </nav>
+
+    <div class="app-body">
+        <!-- Left Panel: Chart Library -->
+        <aside class="library-panel">
+            <div class="panel-header">
+                <h6 class="mb-0"><i class="bi bi-collection me-2"></i>Chart Library</h6>
+                <span class="badge bg-primary">70</span>
+            </div>
+            <div class="search-wrap p-2">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                    <input type="text" id="chart-search" class="form-control" placeholder="Search charts...">
+                </div>
+            </div>
+            <div id="chart-library-container" class="library-scroll"></div>
+        </aside>
+
+        <!-- Middle Panel: Canvas -->
+        <main class="canvas-panel">
+            <div class="canvas-toolbar">
+                <button class="btn btn-sm btn-primary" onclick="canvasManager.addChart({chartType:'bar',title:'New Bar Chart'})">
+                    <i class="bi bi-plus-lg me-1"></i>Add Chart
+                </button>
+                <span class="text-muted small ms-3">Drag from library or double-click to add</span>
+                <div class="ms-auto d-flex gap-2 align-items-center">
+                    <span class="small text-muted" id="chart-count-label"></span>
+                </div>
+            </div>
+            <div class="canvas-scroll">
+                <div id="chart-canvas-drop" class="chart-grid row g-3 p-3">
+                    <!-- Charts rendered here -->
+                </div>
+                <div id="canvas-empty-state" class="empty-state" style="display:none">
+                    <i class="bi bi-bar-chart-line display-4 text-muted mb-3"></i>
+                    <h5 class="text-muted">No charts yet</h5>
+                    <p class="text-muted small">Drag a chart type from the library or click "Add Chart"</p>
+                    <button class="btn btn-primary" onclick="canvasManager.addChart({chartType:'bar',title:'My First Chart'})">
+                        <i class="bi bi-plus-lg me-1"></i>Add First Chart
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Panel: Properties -->
+        <aside class="properties-panel">
+            <div class="panel-header">
+                <h6 class="mb-0"><i class="bi bi-sliders me-2"></i>Properties</h6>
+            </div>
+            <div id="properties-empty" class="empty-state-small">
+                <i class="bi bi-cursor-fill text-muted mb-2"></i>
+                <small class="text-muted">Select a chart to edit its properties</small>
+            </div>
+            <div id="properties-form" style="display:none" class="properties-scroll">
+                <div class="p-3">
+                    <!-- Basic -->
+                    <div class="prop-section">
+                        <div class="prop-section-title">Basic</div>
+                        <div class="mb-2">
+                            <label class="form-label">Title</label>
+                            <input type="text" id="prop-title" class="form-control form-control-sm">
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Chart Type</label>
+                            <select id="prop-chart-type" class="form-select form-select-sm">
+                                <option value="bar">Bar</option>
+                                <option value="horizontalBar">Horizontal Bar</option>
+                                <option value="stackedBar">Stacked Bar</option>
+                                <option value="line">Line</option>
+                                <option value="area">Area</option>
+                                <option value="pie">Pie</option>
+                                <option value="donut">Donut</option>
+                                <option value="scatter">Scatter</option>
+                                <option value="bubble">Bubble</option>
+                                <option value="radar">Radar</option>
+                                <option value="polarArea">Polar Area</option>
+                                <option value="gauge">Gauge</option>
+                                <option value="sparkline">Sparkline</option>
+                                <option value="kpiCard">KPI Card</option>
+                            </select>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label">Width (cols)</label>
+                                <select id="prop-width" class="form-select form-select-sm">
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6" selected>6</option>
+                                    <option value="8">8</option>
+                                    <option value="12">12</option>
+                                </select>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Height (px)</label>
+                                <input type="number" id="prop-height" class="form-control form-control-sm" min="150" max="800" step="50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Data -->
+                    <div class="prop-section">
+                        <div class="prop-section-title">Data</div>
+                        <div class="mb-2">
+                            <label class="form-label">Dataset</label>
+                            <select id="prop-dataset" class="form-select form-select-sm" onchange="propertiesPanel.datasetChanged()">
+                                <option value="sales">Sales</option>
+                                <option value="population">Population</option>
+                                <option value="weather">Weather</option>
+                                <option value="finance">Finance</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Label Field</label>
+                            <select id="prop-label-field" class="form-select form-select-sm field-select"></select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Value Field</label>
+                            <select id="prop-value-field" class="form-select form-select-sm field-select"></select>
+                        </div>
+                        <div class="mb-2 form-check">
+                            <input type="checkbox" id="prop-agg-enabled" class="form-check-input">
+                            <label class="form-check-label" for="prop-agg-enabled">Enable Aggregation</label>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Aggregation</label>
+                            <select id="prop-agg-function" class="form-select form-select-sm">
+                                <option value="SUM">SUM</option>
+                                <option value="AVG">AVG</option>
+                                <option value="COUNT">COUNT</option>
+                                <option value="MAX">MAX</option>
+                                <option value="MIN">MIN</option>
+                            </select>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Custom JSON Data</label>
+                            <textarea id="prop-custom-json" class="form-control form-control-sm font-monospace" rows="3" placeholder='[{"label":"A","value":10}]'></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Style -->
+                    <div class="prop-section">
+                        <div class="prop-section-title">Style</div>
+                        <div class="mb-2">
+                            <label class="form-label">Color Palette</label>
+                            <select id="prop-color-palette" class="form-select form-select-sm">
+                                <option value="default">Default</option>
+                                <option value="ocean">Ocean</option>
+                                <option value="sunset">Sunset</option>
+                                <option value="forest">Forest</option>
+                                <option value="rainbow">Rainbow</option>
+                                <option value="pastel">Pastel</option>
+                            </select>
+                        </div>
+                        <div class="mb-2 form-check">
+                            <input type="checkbox" id="prop-show-legend" class="form-check-input">
+                            <label class="form-check-label" for="prop-show-legend">Show Legend</label>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label">Legend Position</label>
+                            <select id="prop-legend-position" class="form-select form-select-sm">
+                                <option value="top">Top</option>
+                                <option value="bottom">Bottom</option>
+                                <option value="left">Left</option>
+                                <option value="right">Right</option>
+                            </select>
+                        </div>
+                        <div class="mb-2 form-check">
+                            <input type="checkbox" id="prop-fill-area" class="form-check-input">
+                            <label class="form-check-label" for="prop-fill-area">Fill Area (Line)</label>
+                        </div>
+                        <div class="mb-2 form-check">
+                            <input type="checkbox" id="prop-show-tooltips" class="form-check-input">
+                            <label class="form-check-label" for="prop-show-tooltips">Show Tooltips</label>
+                        </div>
+                        <div class="mb-2 form-check">
+                            <input type="checkbox" id="prop-animated" class="form-check-input">
+                            <label class="form-check-label" for="prop-animated">Animated</label>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <label class="form-label">Title Font Size</label>
+                                <input type="number" id="prop-title-font-size" class="form-control form-control-sm" min="10" max="28">
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label">Border Radius</label>
+                                <input type="number" id="prop-border-radius" class="form-control form-control-sm" min="0" max="20">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Apply button -->
+                    <button class="btn btn-primary w-100 mt-2" onclick="propertiesPanel.apply()">
+                        <i class="bi bi-check2 me-1"></i>Apply Changes
+                    </button>
+                </div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+(function() {
+    const initialCharts = @Html.Raw(ViewBag.InitialCharts ?? "[]");
+    const chartLibraryData = @Html.Raw(ViewBag.ChartLibrary ?? "[]");
+    const datasets = @Html.Raw(ViewBag.Datasets ?? "[]");
+
+    document.addEventListener('DOMContentLoaded', function() {
+        chartLibrary.init(chartLibraryData);
+        canvasManager.init(initialCharts);
+
+        // Populate dataset options
+        const ds = document.getElementById('prop-dataset');
+        if (ds && datasets.length) {
+            ds.innerHTML = datasets.map(d => `<option value="${d}">${d.charAt(0).toUpperCase()+d.slice(1)}</option>`).join('');
+        }
+
+        // Update chart count
+        function updateCount() {
+            const el = document.getElementById('chart-count-label');
+            if (el) el.textContent = `${canvasManager.charts.length} chart${canvasManager.charts.length !== 1 ? 's' : ''}`;
+        }
+        setInterval(updateCount, 500);
+    });
+})();
+
+function promptRename() {
+    const current = document.getElementById('canvas-name-display').textContent;
+    const name = prompt('Enter canvas name:', current);
+    if (name && name.trim()) {
+        document.getElementById('canvas-name-display').textContent = name.trim();
+        fetch('/api/chart/rename', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name.trim() })
+        });
+    }
+}
+</script>
+}

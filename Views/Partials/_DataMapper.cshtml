@@ -1,0 +1,15 @@
+@model ManageCharts.Models.FieldMapping
+<div class="data-mapper">
+    <div class="mb-2">
+        <label class="form-label">Label Field</label>
+        <select class="form-select form-select-sm field-select" name="LabelField">
+            <option value="@Model.LabelField" selected>@Model.LabelField</option>
+        </select>
+    </div>
+    <div class="mb-2">
+        <label class="form-label">Value Field</label>
+        <select class="form-select form-select-sm field-select" name="ValueField">
+            <option value="@Model.ValueField" selected>@Model.ValueField</option>
+        </select>
+    </div>
+</div>
