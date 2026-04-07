@@ -248,10 +248,16 @@
         chartLibrary.init(chartLibraryData);
         canvasManager.init(initialCharts);
 
-        // Populate dataset options
+        // Populate dataset options safely (use DOM API to avoid XSS)
         const ds = document.getElementById('prop-dataset');
         if (ds && datasets.length) {
-            ds.innerHTML = datasets.map(d => `<option value="${d}">${d.charAt(0).toUpperCase()+d.slice(1)}</option>`).join('');
+            ds.innerHTML = '';
+            datasets.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value = d;
+                opt.textContent = d.charAt(0).toUpperCase() + d.slice(1);
+                ds.appendChild(opt);
+            });
         }
 
         // Update chart count

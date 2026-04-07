@@ -34,12 +34,18 @@ class PropertiesPanel {
         }
     }
 
+    escapeHtml(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(String(str)));
+        return div.innerHTML;
+    }
+
     updateFieldSelects() {
         const selects = document.querySelectorAll('.field-select');
         selects.forEach(sel => {
             const current = sel.value;
             sel.innerHTML = '<option value="">-- none --</option>' +
-                this.fields.map(f => `<option value="${f}">${f}</option>`).join('');
+                this.fields.map(f => `<option value="${this.escapeHtml(f)}">${this.escapeHtml(f)}</option>`).join('');
             if (current) sel.value = current;
         });
     }
