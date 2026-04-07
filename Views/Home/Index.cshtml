@@ -100,20 +100,6 @@
                         <div class="mb-2">
                             <label class="form-label">Chart Type</label>
                             <select id="prop-chart-type" class="form-select form-select-sm">
-                                <option value="bar">Bar</option>
-                                <option value="horizontalBar">Horizontal Bar</option>
-                                <option value="stackedBar">Stacked Bar</option>
-                                <option value="line">Line</option>
-                                <option value="area">Area</option>
-                                <option value="pie">Pie</option>
-                                <option value="donut">Donut</option>
-                                <option value="scatter">Scatter</option>
-                                <option value="bubble">Bubble</option>
-                                <option value="radar">Radar</option>
-                                <option value="polarArea">Polar Area</option>
-                                <option value="gauge">Gauge</option>
-                                <option value="sparkline">Sparkline</option>
-                                <option value="kpiCard">KPI Card</option>
                             </select>
                         </div>
                         <div class="row g-2">
@@ -247,6 +233,23 @@
     document.addEventListener('DOMContentLoaded', function() {
         chartLibrary.init(chartLibraryData);
         canvasManager.init(initialCharts);
+
+        // Dynamically populate chart type dropdown from chartLibraryData grouped by category
+        const chartTypeSelect = document.getElementById('prop-chart-type');
+        if (chartTypeSelect && chartLibraryData.length) {
+            chartTypeSelect.innerHTML = '';
+            chartLibraryData.forEach(group => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = group.group;
+                (group.charts || []).forEach(c => {
+                    const opt = document.createElement('option');
+                    opt.value = c.id;
+                    opt.textContent = c.name;
+                    optgroup.appendChild(opt);
+                });
+                chartTypeSelect.appendChild(optgroup);
+            });
+        }
 
         // Populate dataset options safely (use DOM API to avoid XSS)
         const ds = document.getElementById('prop-dataset');
