@@ -131,34 +131,47 @@ class CanvasManager {
         this.updateEmptyState();
     }
 
+    escapeHtml(str) {
+        const div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+    }
+
     renderChart(chartDef) {
         const container = document.getElementById('chart-canvas-drop');
         if (!container) return;
 
         const col = this.getColClass(chartDef.width || 6);
+        const safeId = this.escapeHtml(chartDef.id);
+        const safeTitle = this.escapeHtml(chartDef.title || 'Chart');
         const card = document.createElement('div');
         card.className = `chart-card col-${col}`;
         card.dataset.chartId = chartDef.id;
         card.innerHTML = `
             <div class="chart-card-header">
                 <i class="bi bi-grip-vertical chart-drag-handle text-muted me-2"></i>
-                <span class="chart-title">${chartDef.title || 'Chart'}</span>
+                <span class="chart-title">${safeTitle}</span>
                 <div class="chart-card-actions ms-auto">
-                    <button class="btn btn-xs btn-icon" onclick="canvasManager.selectChart('${chartDef.id}')" title="Edit">
+                    <button class="btn btn-xs btn-icon" data-action="edit" title="Edit">
                         <i class="bi bi-pencil"></i>
                     </button>
-                    <button class="btn btn-xs btn-icon" onclick="canvasManager.duplicateChart('${chartDef.id}')" title="Duplicate">
+                    <button class="btn btn-xs btn-icon" data-action="duplicate" title="Duplicate">
                         <i class="bi bi-copy"></i>
                     </button>
-                    <button class="btn btn-xs btn-icon text-danger" onclick="canvasManager.deleteChart('${chartDef.id}')" title="Delete">
+                    <button class="btn btn-xs btn-icon text-danger" data-action="delete" title="Delete">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
             </div>
-            <div class="chart-canvas-wrap" style="height: ${chartDef.height || 300}px">
-                <canvas id="canvas-${chartDef.id}"></canvas>
+            <div class="chart-canvas-wrap" style="height: ${parseInt(chartDef.height) || 300}px">
+                <canvas id="canvas-${safeId}"></canvas>
             </div>
         `;
+
+        card.querySelector('[data-action="edit"]').addEventListener('click', () => this.selectChart(chartDef.id));
+        card.querySelector('[data-action="duplicate"]').addEventListener('click', () => this.duplicateChart(chartDef.id));
+        card.querySelector('[data-action="delete"]').addEventListener('click', () => this.deleteChart(chartDef.id));
+
         container.appendChild(card);
 
         card.addEventListener('click', (e) => {
