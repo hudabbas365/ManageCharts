@@ -144,12 +144,15 @@ class PropertiesPanel {
     }
 
     bindAutoApply() {
+        const DEBOUNCE_DELAY_MS = 300;
         const form = document.getElementById('properties-form');
         if (!form) return;
 
-        // Remove previous listeners by replacing the form's event delegation
+        // Remove previous listeners before re-binding
         if (this._autoApplyHandler) {
             form.removeEventListener('change', this._autoApplyHandler);
+        }
+        if (this._autoApplyInputHandler) {
             form.removeEventListener('input', this._autoApplyInputHandler);
         }
 
@@ -157,7 +160,7 @@ class PropertiesPanel {
         const applyNow = () => this.apply();
         const applyDebounced = () => {
             clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(applyNow, 300);
+            debounceTimer = setTimeout(applyNow, DEBOUNCE_DELAY_MS);
         };
 
         // Immediate apply for select, checkbox, color inputs on 'change'

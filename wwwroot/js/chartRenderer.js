@@ -51,7 +51,9 @@ class ChartRenderer {
             const b = parseInt(hex.slice(5, 7), 16);
             const shades = [];
             for (let i = 0; i < count; i++) {
+                // factor ranges from 0.5 (darker) to 1.3 (lighter) across the palette
                 const factor = 0.5 + (i / count) * 0.8;
+                // blend the channel with 30% white at darker end to avoid pure black
                 const mix = (channel) => Math.min(255, Math.round(channel * factor + 255 * (1 - factor) * 0.3));
                 const nr = mix(r);
                 const ng = mix(g);
@@ -1640,8 +1642,9 @@ class ChartRenderer {
     }
 
     renderTableChart(chartDef, container, data, colors, h) {
-        const labels = (data.labels || ['A','B','C','D','E']).slice(0, 50);
-        const values = (data.values || []).slice(0, 50);
+        const MAX_ROWS = 50;
+        const labels = (data.labels || ['A','B','C','D','E']).slice(0, MAX_ROWS);
+        const values = (data.values || []).slice(0, MAX_ROWS);
         const mapping = chartDef.mapping || {};
         const labelField = mapping.labelField || 'Label';
         const valueField = mapping.valueField || 'Value';
