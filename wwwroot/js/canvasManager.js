@@ -2,15 +2,29 @@
 class CanvasManager {
     constructor() {
         this.charts = [];
+        this.pages = [];
+        this.activePageIndex = 0;
         this.selectedChartId = null;
         this._maxZIndex = 1;
         this._dragState = null;
     }
 
-    init(initialCharts) {
-        this.charts = initialCharts || [];
+    init(initialCharts, pages, activePageIndex) {
+        if (pages && pages.length > 0) {
+            this.pages = pages;
+            this.activePageIndex = activePageIndex || 0;
+            this.charts = this.pages[this.activePageIndex].charts || [];
+        } else {
+            this.pages = [{ name: 'Page 1', charts: initialCharts || [] }];
+            this.activePageIndex = 0;
+            this.charts = this.pages[0].charts;
+        }
         this.renderAll();
+        this.renderPageTabs();
         this.initDropZone();
+
+        const addBtn = document.getElementById('add-page-btn');
+        if (addBtn) addBtn.addEventListener('click', () => this.addPage());
     }
 
     initDropZone() {
@@ -189,6 +203,7 @@ class CanvasManager {
             <div class="chart-canvas-wrap" style="height: ${parseInt(chartDef.height) || 300}px">
                 <canvas id="canvas-${safeId}"></canvas>
             </div>
+            <div class="chart-resize-handle" title="Drag to resize"></div>
         `;
 
         card.querySelector('[data-action="edit"]').addEventListener('click', (e) => {
@@ -212,6 +227,8 @@ class CanvasManager {
 
         // Make draggable
         this._makeCardDraggable(card, chartDef);
+        // Make resizable
+        this._makeCardResizable(card, chartDef);
 
         const canvasEl = card.querySelector('canvas');
         requestAnimationFrame(() => window.chartRenderer.render(chartDef, canvasEl));
@@ -278,6 +295,142 @@ class CanvasManager {
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
         });
+    }
+
+    _makeCardResizable(card, chartDef) {
+        const handle = card.querySelector('.chart-resize-handle');
+        if (!handle) return;
+
+        handle.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const startX = e.clientX;
+            const startY = e.clientY;
+            const startW = card.offsetWidth;
+            const canvasWrap = card.querySelector('.chart-canvas-wrap');
+            const startH = canvasWrap ? canvasWrap.offsetHeight : (parseInt(chartDef.height) || 300);
+
+            card.classList.add('resizing');
+
+            const onMouseMove = (ev) => {
+                const newW = Math.max(200, startW + (ev.clientX - startX));
+                const newH = Math.max(150, startH + (ev.clientY - startY));
+                card.style.width = newW + 'px';
+                if (canvasWrap) canvasWrap.style.height = newH + 'px';
+            };
+
+            const onMouseUp = (ev) => {
+                card.classList.remove('resizing');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+
+                const newW = Math.max(200, startW + (ev.clientX - startX));
+                const newH = Math.max(150, startH + (ev.clientY - startY));
+
+                chartDef.width = this.pixelsToCols(newW);
+                chartDef.height = Math.round(newH);
+
+                const chart = this.charts.find(c => c.id === chartDef.id);
+                if (chart) {
+                    chart.width = chartDef.width;
+                    chart.height = chartDef.height;
+                    fetch(`/api/chart/${chartDef.id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(chart)
+                    }).then(() => {
+                        const canvasEl = card.querySelector('canvas');
+                        if (canvasEl) window.chartRenderer.render(chart, canvasEl);
+                    }).catch(err => console.warn('Could not persist chart resize:', err));
+                }
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        });
+    }
+
+    pixelsToCols(px) {
+        const baseWidth = Math.min(window.innerWidth - 600, 900);
+        return Math.max(2, Math.min(12, Math.round((px / baseWidth) * 12)));
+    }
+
+    // ── Page management ────────────────────────────────────────────
+
+    renderPageTabs() {
+        const container = document.getElementById('page-tabs');
+        if (!container) return;
+        container.innerHTML = '';
+        this.pages.forEach((page, index) => {
+            const tab = document.createElement('div');
+            tab.className = 'page-tab' + (index === this.activePageIndex ? ' active' : '');
+            tab.textContent = page.name;
+            tab.title = 'Double-click to rename';
+            tab.addEventListener('click', () => this.switchPage(index));
+            tab.addEventListener('dblclick', (e) => { e.stopPropagation(); this.renamePage(index); });
+            if (this.pages.length > 1) {
+                const closeBtn = document.createElement('span');
+                closeBtn.className = 'page-tab-close';
+                closeBtn.innerHTML = '&times;';
+                closeBtn.title = 'Delete page';
+                closeBtn.addEventListener('click', (e) => { e.stopPropagation(); this.deletePage(index); });
+                tab.appendChild(closeBtn);
+            }
+            container.appendChild(tab);
+        });
+    }
+
+    switchPage(index) {
+        if (index === this.activePageIndex) return;
+        // Save current charts back to the current page
+        this.pages[this.activePageIndex].charts = this.charts;
+        this.activePageIndex = index;
+        this.charts = this.pages[index].charts || [];
+        this.renderAll();
+        this.renderPageTabs();
+        fetch(`/api/page/switch/${index}`, { method: 'POST' })
+            .catch(err => console.warn('Could not persist page switch:', err));
+    }
+
+    async addPage() {
+        const newPage = { name: `Page ${this.pages.length + 1}`, charts: [] };
+        this.pages.push(newPage);
+        try {
+            const resp = await fetch('/api/page/add', { method: 'POST' });
+            if (resp.ok) {
+                const data = await resp.json();
+                newPage.name = data.name || newPage.name;
+            }
+        } catch (err) {
+            console.warn('Could not persist page add:', err);
+        }
+        this.switchPage(this.pages.length - 1);
+    }
+
+    renamePage(index) {
+        const current = this.pages[index]?.name || `Page ${index + 1}`;
+        const name = prompt('Rename page:', current);
+        if (!name || !name.trim()) return;
+        this.pages[index].name = name.trim();
+        this.renderPageTabs();
+        fetch('/api/page/rename', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ index, name: name.trim() })
+        }).catch(err => console.warn('Could not persist page rename:', err));
+    }
+
+    deletePage(index) {
+        if (this.pages.length <= 1) { alert('Cannot delete the only page.'); return; }
+        if (!confirm(`Delete "${this.pages[index].name}"? All charts on this page will be lost.`)) return;
+        this.pages.splice(index, 1);
+        if (this.activePageIndex >= this.pages.length) this.activePageIndex = this.pages.length - 1;
+        this.charts = this.pages[this.activePageIndex].charts || [];
+        this.renderAll();
+        this.renderPageTabs();
+        fetch(`/api/page/${index}`, { method: 'DELETE' })
+            .catch(err => console.warn('Could not persist page delete:', err));
     }
 
     updateEmptyState() {

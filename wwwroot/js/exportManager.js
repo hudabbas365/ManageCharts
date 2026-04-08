@@ -184,6 +184,33 @@ class ExportManager {
             alert('Could not import file. Please ensure it is a valid report JSON export.');
         }
     }
+
+    async exportXml() {
+        const resp = await fetch('/api/report/export/xml');
+        if (!resp.ok) { alert('Export failed'); return; }
+        const blob = await resp.blob();
+        const link = document.createElement('a');
+        const canvasName = document.getElementById('canvas-name-display')?.textContent || 'report';
+        link.download = canvasName.replace(/[^a-z0-9\-_]/gi, '_') + '.xml';
+        link.href = URL.createObjectURL(blob);
+        link.click();
+    }
+
+    async importXml(file) {
+        if (!file) return;
+        const formData = new FormData();
+        formData.append('file', file);
+        const resp = await fetch('/api/report/import/xml', { method: 'POST', body: formData });
+        if (!resp.ok) { alert('Import failed. Ensure the file is a valid ManageCharts XML export.'); return; }
+        const data = await resp.json();
+        if (window.canvasManager) {
+            canvasManager.pages = data.pages || [{ name: 'Page 1', charts: data.charts || [] }];
+            canvasManager.activePageIndex = data.activePageIndex || 0;
+            canvasManager.charts = canvasManager.pages[canvasManager.activePageIndex].charts || [];
+            canvasManager.renderAll();
+            canvasManager.renderPageTabs();
+        }
+    }
 }
 
 window.exportManager = new ExportManager();

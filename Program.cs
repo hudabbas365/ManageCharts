@@ -1,11 +1,13 @@
 using ManageCharts.Services;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews()
     .AddNewtonsoftJson(options => {
         options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+        options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
     });
 
 builder.Services.AddDistributedMemoryCache();

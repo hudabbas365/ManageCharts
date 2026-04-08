@@ -2,6 +2,7 @@ using ManageCharts.Models;
 using ManageCharts.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Xml.Serialization;
 
 namespace ManageCharts.Controllers;
 
@@ -111,9 +112,96 @@ public class ChartController : ControllerBase
         return Ok(_chartService.GetGroupedCharts()
             .Select(g => new { group = g.Key, charts = g.ToList() }));
     }
+
+    // ── Page management ────────────────────────────────────────────
+
+    [HttpPost("/api/page/add")]
+    public IActionResult AddPage()
+    {
+        var canvas = GetCanvas();
+        var newPage = new ReportPage { Name = $"Page {canvas.Pages.Count + 1}" };
+        canvas.Pages.Add(newPage);
+        canvas.ActivePageIndex = canvas.Pages.Count - 1;
+        SaveCanvas(canvas);
+        return Ok(new { pageIndex = canvas.ActivePageIndex, name = newPage.Name });
+    }
+
+    [HttpPost("/api/page/switch/{index}")]
+    public IActionResult SwitchPage(int index)
+    {
+        var canvas = GetCanvas();
+        if (index < 0 || index >= canvas.Pages.Count) return BadRequest("Invalid page index");
+        canvas.ActivePageIndex = index;
+        SaveCanvas(canvas);
+        return Ok(new { success = true });
+    }
+
+    [HttpPost("/api/page/rename")]
+    public IActionResult RenamePage([FromBody] PageRenameRequest req)
+    {
+        var canvas = GetCanvas();
+        if (req.Index < 0 || req.Index >= canvas.Pages.Count) return BadRequest("Invalid page index");
+        canvas.Pages[req.Index].Name = req.Name;
+        SaveCanvas(canvas);
+        return Ok(new { success = true });
+    }
+
+    [HttpDelete("/api/page/{index}")]
+    public IActionResult DeletePage(int index)
+    {
+        var canvas = GetCanvas();
+        if (canvas.Pages.Count <= 1) return BadRequest("Cannot delete the only page");
+        if (index < 0 || index >= canvas.Pages.Count) return BadRequest("Invalid page index");
+        canvas.Pages.RemoveAt(index);
+        if (canvas.ActivePageIndex >= canvas.Pages.Count)
+            canvas.ActivePageIndex = canvas.Pages.Count - 1;
+        SaveCanvas(canvas);
+        return Ok(new { success = true });
+    }
+
+    // ── XML export / import ────────────────────────────────────────
+
+    [HttpGet("/api/report/export/xml")]
+    public IActionResult ExportXml()
+    {
+        var canvas = GetCanvas();
+        var serializer = new XmlSerializer(typeof(CanvasState));
+        using var ms = new MemoryStream();
+        serializer.Serialize(ms, canvas);
+        var safeName = canvas.CanvasName.Replace(" ", "_");
+        return File(ms.ToArray(), "application/xml", $"{safeName}.xml");
+    }
+
+    [HttpPost("/api/report/import/xml")]
+    public IActionResult ImportXml(IFormFile file)
+    {
+        if (file == null || file.Length == 0) return BadRequest("No file provided");
+        try
+        {
+            var serializer = new XmlSerializer(typeof(CanvasState));
+            using var stream = file.OpenReadStream();
+            var canvas = (CanvasState?)serializer.Deserialize(stream);
+            if (canvas == null) return BadRequest("Could not parse XML");
+            if (canvas.Pages == null || canvas.Pages.Count == 0)
+                canvas.Pages = new() { new ReportPage { Name = "Page 1" } };
+            canvas.ActivePageIndex = Math.Clamp(canvas.ActivePageIndex, 0, canvas.Pages.Count - 1);
+            SaveCanvas(canvas);
+            return Ok(new { pages = canvas.Pages, activePageIndex = canvas.ActivePageIndex, canvasName = canvas.CanvasName });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest($"Invalid XML: {ex.Message}");
+        }
+    }
 }
 
 public class RenameRequest
 {
+    public string Name { get; set; } = "";
+}
+
+public class PageRenameRequest
+{
+    public int Index { get; set; }
     public string Name { get; set; } = "";
 }

@@ -2,6 +2,7 @@ using ManageCharts.Models;
 using ManageCharts.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace ManageCharts.Controllers;
 
@@ -10,6 +11,12 @@ public class HomeController : Controller
     private readonly IChartService _chartService;
     private readonly IDataService _dataService;
     private const string SessionKey = "canvas_state";
+
+    private static readonly JsonSerializerSettings CamelCaseSettings = new()
+    {
+        ContractResolver = new CamelCasePropertyNamesContractResolver(),
+        ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+    };
 
     public HomeController(IChartService chartService, IDataService dataService)
     {
@@ -31,11 +38,13 @@ public class HomeController : Controller
             canvas = JsonConvert.DeserializeObject<CanvasState>(canvasJson) ?? new CanvasState();
         }
 
-        ViewBag.InitialCharts = JsonConvert.SerializeObject(canvas.Charts);
+        ViewBag.InitialCharts = JsonConvert.SerializeObject(canvas.Charts, CamelCaseSettings);
+        ViewBag.Pages = JsonConvert.SerializeObject(canvas.Pages, CamelCaseSettings);
+        ViewBag.ActivePageIndex = canvas.ActivePageIndex;
         ViewBag.CanvasName = canvas.CanvasName;
         ViewBag.ChartLibrary = JsonConvert.SerializeObject(_chartService.GetGroupedCharts()
-            .Select(g => new { group = g.Key, charts = g.ToList() }));
-        ViewBag.Datasets = JsonConvert.SerializeObject(_dataService.GetDatasets());
+            .Select(g => new { group = g.Key, charts = g.ToList() }), CamelCaseSettings);
+        ViewBag.Datasets = JsonConvert.SerializeObject(_dataService.GetDatasets(), CamelCaseSettings);
 
         return View(canvas);
     }
