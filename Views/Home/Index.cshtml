@@ -31,6 +31,13 @@
                 <i class="bi bi-upload me-1"></i>Import
                 <input type="file" accept=".json" onchange="exportManager.importJson(this.files[0])" style="display:none">
             </label>
+            <button class="btn btn-sm btn-outline-secondary me-1" onclick="exportManager.exportXml()" title="Export XML">
+                <i class="bi bi-file-code me-1"></i>XML
+            </button>
+            <label class="btn btn-sm btn-outline-secondary me-2" title="Import XML">
+                <i class="bi bi-upload me-1"></i>Import XML
+                <input type="file" accept=".xml" onchange="exportManager.importXml(this.files[0])" style="display:none">
+            </label>
             <button class="btn btn-sm btn-danger" onclick="canvasManager.resetCanvas()" title="Reset">
                 <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
             </button>
@@ -56,10 +63,7 @@
         <!-- Middle Panel: Canvas -->
         <main class="canvas-panel">
             <div class="canvas-toolbar">
-                <button class="btn btn-sm btn-primary" onclick="canvasManager.addChart({chartType:'bar',title:'New Bar Chart'})">
-                    <i class="bi bi-plus-lg me-1"></i>Add Chart
-                </button>
-                <span class="text-muted small ms-3">Drag from library or double-click to add</span>
+                <span class="text-muted small">Drag from library or double-click to add charts</span>
                 <div class="ms-auto d-flex gap-2 align-items-center">
                     <span class="small text-muted" id="chart-count-label"></span>
                 </div>
@@ -69,13 +73,15 @@
                     <!-- Charts rendered here as absolutely-positioned cards -->
                 </div>
                 <div id="canvas-empty-state" class="empty-state" style="display:none">
-                    <i class="bi bi-bar-chart-line display-4 text-muted mb-3"></i>
-                    <h5 class="text-muted">No charts yet</h5>
-                    <p class="text-muted small">Drag a chart type from the library or click "Add Chart"</p>
-                    <button class="btn btn-primary" onclick="canvasManager.addChart({chartType:'bar',title:'My First Chart'})">
-                        <i class="bi bi-plus-lg me-1"></i>Add First Chart
-                    </button>
+                    <i class="bi bi-file-bar-chart display-1 text-muted mb-4"></i>
+                    <p class="text-muted">Add charts from the library to get started</p>
                 </div>
+            </div>
+            <div class="page-tabs-bar">
+                <div class="page-tabs" id="page-tabs"></div>
+                <button class="btn btn-xs page-add-btn" id="add-page-btn" title="Add page">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
             </div>
         </main>
 
@@ -310,10 +316,12 @@
     const initialCharts = @Html.Raw(ViewBag.InitialCharts ?? "[]");
     const chartLibraryData = @Html.Raw(ViewBag.ChartLibrary ?? "[]");
     const datasets = @Html.Raw(ViewBag.Datasets ?? "[]");
+    const pages = @Html.Raw(ViewBag.Pages ?? "[]");
+    const activePageIndex = @(ViewBag.ActivePageIndex ?? 0);
 
     document.addEventListener('DOMContentLoaded', function() {
         chartLibrary.init(chartLibraryData);
-        canvasManager.init(initialCharts);
+        canvasManager.init(initialCharts, pages, activePageIndex);
 
         // Populate dataset options safely (use DOM API to avoid XSS)
         const ds = document.getElementById('prop-dataset');
