@@ -22,6 +22,7 @@ class PropertiesPanel {
 
         await this.loadFields(chartDef.datasetName);
         this.populate();
+        this.bindAutoApply();
     }
 
     async loadFields(datasetName) {
@@ -56,7 +57,7 @@ class PropertiesPanel {
         this.setVal('prop-value-field', c.mapping?.valueField || '');
         this.setVal('prop-agg-enabled', c.aggregation?.enabled || false, 'checkbox');
         this.setVal('prop-agg-function', c.aggregation?.function || 'SUM');
-        this.setVal('prop-color-palette', c.style?.colorPalette || 'default');
+        this.setVal('prop-color-palette', this._resolveColorHex(c.style?.colorPalette));
         this.setVal('prop-show-legend', c.style?.showLegend !== false, 'checkbox');
         this.setVal('prop-legend-position', c.style?.legendPosition || 'top');
         this.setVal('prop-fill-area', c.style?.fillArea || false, 'checkbox');
@@ -65,6 +66,21 @@ class PropertiesPanel {
         this.setVal('prop-title-font-size', c.style?.titleFontSize || 14);
         this.setVal('prop-border-radius', c.style?.borderRadius || '4');
         this.setVal('prop-custom-json', c.customJsonData || '');
+    }
+
+    _resolveColorHex(colorPalette) {
+        if (!colorPalette) return '#4A90D9';
+        if (colorPalette.startsWith('#')) return colorPalette;
+        // Map legacy named palettes to their primary hex color
+        const paletteMap = {
+            default: '#4A90D9',
+            ocean:   '#006994',
+            sunset:  '#FF6B6B',
+            forest:  '#2D6A4F',
+            rainbow: '#E63946',
+            pastel:  '#FFB3BA',
+        };
+        return paletteMap[colorPalette] || '#4A90D9';
     }
 
     setVal(id, val, type = 'value') {
@@ -125,6 +141,44 @@ class PropertiesPanel {
         const ds = this.getVal('prop-dataset');
         await this.loadFields(ds);
         if (this.currentChart) this.currentChart.datasetName = ds;
+    }
+
+    bindAutoApply() {
+        const DEBOUNCE_DELAY_MS = 300;
+        const form = document.getElementById('properties-form');
+        if (!form) return;
+
+        // Remove previous listeners before re-binding
+        if (this._autoApplyHandler) {
+            form.removeEventListener('change', this._autoApplyHandler);
+        }
+        if (this._autoApplyInputHandler) {
+            form.removeEventListener('input', this._autoApplyInputHandler);
+        }
+
+        let debounceTimer = null;
+        const applyNow = () => this.apply();
+        const applyDebounced = () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(applyNow, DEBOUNCE_DELAY_MS);
+        };
+
+        // Immediate apply for select, checkbox, color inputs on 'change'
+        this._autoApplyHandler = (e) => {
+            const el = e.target;
+            if (!el.matches('select, input[type="checkbox"], input[type="color"]')) return;
+            applyNow();
+        };
+
+        // Debounced apply for text and number inputs on 'input'
+        this._autoApplyInputHandler = (e) => {
+            const el = e.target;
+            if (!el.matches('input[type="text"], input[type="number"], textarea')) return;
+            applyDebounced();
+        };
+
+        form.addEventListener('change', this._autoApplyHandler);
+        form.addEventListener('input', this._autoApplyInputHandler);
     }
 }
 
