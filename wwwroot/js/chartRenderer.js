@@ -897,8 +897,9 @@ class ChartRenderer {
             marimekko:      () => this.renderMarimekko(chartDef, container, data, colors, h),
             dumbbell:       () => this.renderDumbbell(chartDef, container, data, colors, h),
         };
-        // Use hasOwnProperty to prevent prototype chain dispatch with user-controlled input
-        if (Object.prototype.hasOwnProperty.call(dispatch, ct)) dispatch[ct]();
+        // Validate ct against the known dispatch table; extract and type-check before calling
+        const renderFn = Object.prototype.hasOwnProperty.call(dispatch, ct) ? dispatch[ct] : null;
+        if (typeof renderFn === 'function') renderFn();
         else this.renderPlaceholder(chartDef, container, colors, h);
     }
 

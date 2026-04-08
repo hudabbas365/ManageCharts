@@ -214,7 +214,7 @@ class CanvasManager {
         this._makeCardDraggable(card, chartDef);
 
         const canvasEl = card.querySelector('canvas');
-        setTimeout(() => window.chartRenderer.render(chartDef, canvasEl), 60);
+        requestAnimationFrame(() => window.chartRenderer.render(chartDef, canvasEl));
     }
 
     _makeCardDraggable(card, chartDef) {
@@ -228,7 +228,11 @@ class CanvasManager {
             this.selectChart(chartDef.id);
 
             const container = document.getElementById('chart-canvas-drop');
-            const containerRect = container.getBoundingClientRect();
+            const scrollEl = container.parentElement; // .canvas-scroll
+            // Snapshot rects at drag start; adjust for current scroll offset
+            const containerBase = container.getBoundingClientRect();
+            const scrollLeft = scrollEl ? scrollEl.scrollLeft : 0;
+            const scrollTop  = scrollEl ? scrollEl.scrollTop  : 0;
             const cardRect = card.getBoundingClientRect();
 
             // Offset from mouse to card top-left
@@ -238,10 +242,12 @@ class CanvasManager {
             card.classList.add('dragging');
 
             const onMouseMove = (ev) => {
-                const x = Math.max(0, ev.clientX - containerRect.left - offsetX);
-                const y = Math.max(0, ev.clientY - containerRect.top - offsetY);
+                const sl = scrollEl ? scrollEl.scrollLeft : 0;
+                const st = scrollEl ? scrollEl.scrollTop  : 0;
+                const x = Math.max(0, ev.clientX - containerBase.left + (sl - scrollLeft) - offsetX);
+                const y = Math.max(0, ev.clientY - containerBase.top  + (st - scrollTop)  - offsetY);
                 card.style.left = x + 'px';
-                card.style.top = y + 'px';
+                card.style.top  = y + 'px';
             };
 
             const onMouseUp = (ev) => {
@@ -258,12 +264,12 @@ class CanvasManager {
                 if (chart) {
                     chart.posX = chartDef.posX;
                     chart.posY = chartDef.posY;
-                    // Persist position
+                    // Persist position change
                     fetch(`/api/chart/${chartDef.id}`, {
                         method: 'PUT',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(chart)
-                    });
+                    }).catch(err => console.warn('Could not persist chart position:', err));
                 }
             };
 
