@@ -18,7 +18,8 @@ class ChartRenderer {
             'networkGraph','chordDiagram','arcDiagram','forceDirected','matrix',
             'waffleChart','pictograph',
             'kpiCard','metricTile',
-            'marimekko','dumbbell'
+            'marimekko','dumbbell',
+            'table','slicer'
         ]);
     }
 
@@ -31,10 +32,37 @@ class ChartRenderer {
     }
 
     getColors(palette, count) {
-        const colors = this.colorPalettes[palette] || this.colorPalettes.default;
+        let colors;
+        if (palette && palette.startsWith('#')) {
+            // Hex color provided — generate shades/variations from the primary color
+            colors = this._generateColorShades(palette, 8);
+        } else {
+            colors = this.colorPalettes[palette] || this.colorPalettes.default;
+        }
         const result = [];
         for (let i = 0; i < count; i++) result.push(colors[i % colors.length]);
         return result;
+    }
+
+    _generateColorShades(hex, count) {
+        try {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            const shades = [];
+            for (let i = 0; i < count; i++) {
+                const factor = 0.5 + (i / count) * 0.8;
+                const mix = (channel) => Math.min(255, Math.round(channel * factor + 255 * (1 - factor) * 0.3));
+                const nr = mix(r);
+                const ng = mix(g);
+                const nb = mix(b);
+                shades.push(`#${nr.toString(16).padStart(2,'0')}${ng.toString(16).padStart(2,'0')}${nb.toString(16).padStart(2,'0')}`);
+            }
+            shades[0] = hex;
+            return shades;
+        } catch (e) {
+            return this.colorPalettes.default;
+        }
     }
 
     hexToRgba(hex, alpha) {
@@ -897,6 +925,8 @@ class ChartRenderer {
             case 'metricTile':   this.renderMetricTile(chartDef, container, data, colors, h); break;
             case 'marimekko':    this.renderMarimekko(chartDef, container, data, colors, h); break;
             case 'dumbbell':     this.renderDumbbell(chartDef, container, data, colors, h); break;
+            case 'table':        this.renderTableChart(chartDef, container, data, colors, h); break;
+            case 'slicer':       this.renderSlicer(chartDef, container, data, colors, h); break;
             default:             this.renderPlaceholder(chartDef, container, colors, h); break;
         }
     }
@@ -1607,6 +1637,66 @@ class ChartRenderer {
             radar: 'radar',
         };
         return map[chartType] || 'bar';
+    }
+
+    renderTableChart(chartDef, container, data, colors, h) {
+        const labels = (data.labels || ['A','B','C','D','E']).slice(0, 50);
+        const values = (data.values || []).slice(0, 50);
+        const mapping = chartDef.mapping || {};
+        const labelField = mapping.labelField || 'Label';
+        const valueField = mapping.valueField || 'Value';
+        const primaryColor = (chartDef.style && chartDef.style.colorPalette && chartDef.style.colorPalette.startsWith('#'))
+            ? chartDef.style.colorPalette : colors[0];
+
+        container.style.cssText = 'position:absolute;inset:0;overflow:auto;padding:8px;';
+        const rows = labels.map((lbl, i) =>
+            `<tr><td>${this._esc(String(lbl))}</td><td class="text-end">${this._esc(String(values[i] ?? ''))}</td></tr>`
+        ).join('');
+        container.innerHTML = `
+            <table class="table table-sm table-striped mb-0" style="font-size:12px;">
+                <thead style="position:sticky;top:0;background:#fff;">
+                    <tr>
+                        <th style="color:${this._esc(primaryColor)}">${this._esc(labelField)}</th>
+                        <th class="text-end" style="color:${this._esc(primaryColor)}">${this._esc(valueField)}</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+    }
+
+    renderSlicer(chartDef, container, data, colors, h) {
+        const labels = data.labels || ['A','B','C','D','E'];
+        const uniqueValues = [...new Set(labels.map(String))];
+        const primaryColor = (chartDef.style && chartDef.style.colorPalette && chartDef.style.colorPalette.startsWith('#'))
+            ? chartDef.style.colorPalette : colors[0];
+
+        container.style.cssText = 'position:absolute;inset:0;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px;';
+        const mapping = chartDef.mapping || {};
+        const labelField = mapping.labelField || 'Values';
+
+        const titleEl = document.createElement('div');
+        titleEl.style.cssText = 'font-size:11px;font-weight:600;color:#6c757d;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;';
+        titleEl.textContent = labelField;
+
+        const wrap = document.createElement('div');
+        wrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:4px;';
+
+        uniqueValues.forEach(v => {
+            const btn = document.createElement('button');
+            btn.className = 'slicer-chip badge';
+            btn.style.cssText = `background-color:${primaryColor}22;color:${primaryColor};border:1px solid ${primaryColor}66;border-radius:16px;padding:4px 12px;font-size:12px;cursor:pointer;text-align:left;font-weight:500;transition:all .15s;margin:2px;`;
+            btn.textContent = String(v);
+            btn.addEventListener('click', () => {
+                const active = btn.dataset.active === '1';
+                btn.dataset.active = active ? '0' : '1';
+                btn.style.backgroundColor = active ? `${primaryColor}22` : primaryColor;
+                btn.style.color = active ? primaryColor : '#fff';
+            });
+            wrap.appendChild(btn);
+        });
+
+        container.appendChild(titleEl);
+        container.appendChild(wrap);
     }
 }
 

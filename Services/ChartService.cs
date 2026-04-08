@@ -97,6 +97,10 @@ public class ChartService : IChartService
             new() { Id="progressBar", Name="Progress Bar", Group="KPI/Metrics", Icon="bi-bar-chart-fill", ChartJsType="bar", Description="Goal completion indicator" },
             new() { Id="radialProgress", Name="Radial Progress", Group="KPI/Metrics", Icon="bi-pie-chart", ChartJsType="doughnut", Description="Circular progress indicator" },
             new() { Id="metricTile", Name="Metric Tile", Group="KPI/Metrics", Icon="bi-grid-1x2-fill", ChartJsType="bar", Description="Dashboard metric tile" },
+
+            // Data / Interactive (2)
+            new() { Id="table", Name="Table Chart", Group="Data / Interactive", Icon="bi-table", ChartJsType="bar", Description="Display data in a tabular format" },
+            new() { Id="slicer", Name="Slicer", Group="Data / Interactive", Icon="bi-funnel", ChartJsType="bar", Description="Interactive data filter control" },
         };
     }
 
