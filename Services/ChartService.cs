@@ -117,6 +117,9 @@ public class ChartService : IChartService
             Height = 320,
             GridCol = 0,
             GridRow = 0,
+            PosX = 20,
+            PosY = 20,
+            ZIndex = 1,
             Mapping = new FieldMapping { LabelField = "month", ValueField = "revenue" },
             Aggregation = new AggregationConfig { Function = "SUM", Enabled = true },
             Style = new ChartStyleConfig { ColorPalette = "ocean", ShowLegend = true }
@@ -131,6 +134,9 @@ public class ChartService : IChartService
             Height = 320,
             GridCol = 6,
             GridRow = 0,
+            PosX = 520,
+            PosY = 20,
+            ZIndex = 2,
             Mapping = new FieldMapping { LabelField = "month", ValueField = "revenue" },
             Aggregation = new AggregationConfig { Function = "SUM", Enabled = true },
             Style = new ChartStyleConfig { ColorPalette = "sunset", ShowLegend = true, FillArea = true }
@@ -145,6 +151,9 @@ public class ChartService : IChartService
             Height = 300,
             GridCol = 0,
             GridRow = 1,
+            PosX = 20,
+            PosY = 380,
+            ZIndex = 3,
             Mapping = new FieldMapping { LabelField = "region", ValueField = "profit" },
             Aggregation = new AggregationConfig { Function = "SUM", Enabled = true },
             Style = new ChartStyleConfig { ColorPalette = "rainbow", ShowLegend = true }
@@ -159,6 +168,9 @@ public class ChartService : IChartService
             Height = 300,
             GridCol = 4,
             GridRow = 1,
+            PosX = 370,
+            PosY = 380,
+            ZIndex = 4,
             Mapping = new FieldMapping { LabelField = "product", ValueField = "units" },
             Aggregation = new AggregationConfig { Function = "SUM", Enabled = true },
             Style = new ChartStyleConfig { ColorPalette = "forest", ShowLegend = true }
