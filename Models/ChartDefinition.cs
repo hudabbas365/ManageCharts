@@ -9,6 +9,9 @@ public class ChartDefinition
     public int GridRow { get; set; } = 0;
     public int Width { get; set; } = 4;
     public int Height { get; set; } = 300;
+    public int PosX { get; set; } = 20;
+    public int PosY { get; set; } = 20;
+    public int ZIndex { get; set; } = 1;
     public FieldMapping Mapping { get; set; } = new();
     public AggregationConfig Aggregation { get; set; } = new();
     public ChartStyleConfig Style { get; set; } = new();

@@ -65,8 +65,8 @@
                 </div>
             </div>
             <div class="canvas-scroll">
-                <div id="chart-canvas-drop" class="chart-grid row g-3 p-3">
-                    <!-- Charts rendered here -->
+                <div id="chart-canvas-drop" class="chart-grid p-0">
+                    <!-- Charts rendered here as absolutely-positioned cards -->
                 </div>
                 <div id="canvas-empty-state" class="empty-state" style="display:none">
                     <i class="bi bi-bar-chart-line display-4 text-muted mb-3"></i>
@@ -100,20 +100,94 @@
                         <div class="mb-2">
                             <label class="form-label">Chart Type</label>
                             <select id="prop-chart-type" class="form-select form-select-sm">
-                                <option value="bar">Bar</option>
-                                <option value="horizontalBar">Horizontal Bar</option>
-                                <option value="stackedBar">Stacked Bar</option>
-                                <option value="line">Line</option>
-                                <option value="area">Area</option>
-                                <option value="pie">Pie</option>
-                                <option value="donut">Donut</option>
-                                <option value="scatter">Scatter</option>
-                                <option value="bubble">Bubble</option>
-                                <option value="radar">Radar</option>
-                                <option value="polarArea">Polar Area</option>
-                                <option value="gauge">Gauge</option>
-                                <option value="sparkline">Sparkline</option>
-                                <option value="kpiCard">KPI Card</option>
+                                <optgroup label="Basic">
+                                    <option value="bar">Bar Chart</option>
+                                    <option value="horizontalBar">Horizontal Bar</option>
+                                    <option value="stackedBar">Stacked Bar</option>
+                                    <option value="line">Line Chart</option>
+                                    <option value="area">Area Chart</option>
+                                    <option value="pie">Pie Chart</option>
+                                    <option value="donut">Donut Chart</option>
+                                    <option value="scatter">Scatter Plot</option>
+                                    <option value="bubble">Bubble Chart</option>
+                                    <option value="radar">Radar Chart</option>
+                                </optgroup>
+                                <optgroup label="Advanced">
+                                    <option value="mixedBarLine">Mixed Bar+Line</option>
+                                    <option value="groupedBar">Grouped Bar</option>
+                                    <option value="waterfall">Waterfall</option>
+                                    <option value="funnel">Funnel Chart</option>
+                                    <option value="gauge">Gauge Chart</option>
+                                    <option value="treemap">Treemap</option>
+                                    <option value="heatmap">Heatmap</option>
+                                    <option value="sankey">Sankey Diagram</option>
+                                    <option value="sunburst">Sunburst</option>
+                                    <option value="polarArea">Polar Area</option>
+                                </optgroup>
+                                <optgroup label="Statistical">
+                                    <option value="histogram">Histogram</option>
+                                    <option value="boxPlot">Box Plot</option>
+                                    <option value="violin">Violin Plot</option>
+                                    <option value="bellCurve">Bell Curve</option>
+                                    <option value="pareto">Pareto Chart</option>
+                                    <option value="controlChart">Control Chart</option>
+                                    <option value="regressionLine">Regression Line</option>
+                                    <option value="confidenceBand">Confidence Band</option>
+                                    <option value="errorBar">Error Bar</option>
+                                    <option value="stemLeaf">Stem and Leaf</option>
+                                </optgroup>
+                                <optgroup label="Time Series">
+                                    <option value="timeLine">Time Line</option>
+                                    <option value="candlestick">Candlestick</option>
+                                    <option value="ohlc">OHLC Chart</option>
+                                    <option value="rangeArea">Range Area</option>
+                                    <option value="stepLine">Step Line</option>
+                                    <option value="streamGraph">Stream Graph</option>
+                                    <option value="eventTimeline">Event Timeline</option>
+                                    <option value="gantt">Gantt Chart</option>
+                                    <option value="burnDown">Burn Down</option>
+                                    <option value="velocityChart">Velocity Chart</option>
+                                </optgroup>
+                                <optgroup label="Comparison">
+                                    <option value="bulletChart">Bullet Chart</option>
+                                    <option value="marimekko">Marimekko</option>
+                                    <option value="dotPlot">Dot Plot</option>
+                                    <option value="lollipop">Lollipop Chart</option>
+                                    <option value="dumbbell">Dumbbell Chart</option>
+                                    <option value="slope">Slope Chart</option>
+                                    <option value="divergingBar">Diverging Bar</option>
+                                    <option value="spanChart">Span Chart</option>
+                                    <option value="pairedBar">Paired Bar</option>
+                                    <option value="populationPyramid">Population Pyramid</option>
+                                </optgroup>
+                                <optgroup label="Geographic">
+                                    <option value="choropleth">Choropleth Map</option>
+                                    <option value="bubbleMap">Bubble Map</option>
+                                    <option value="heatMapGeo">Heat Map Geographic</option>
+                                    <option value="flowMap">Flow Map</option>
+                                    <option value="spikeMap">Spike Map</option>
+                                </optgroup>
+                                <optgroup label="Relationship">
+                                    <option value="networkGraph">Network Graph</option>
+                                    <option value="chordDiagram">Chord Diagram</option>
+                                    <option value="arcDiagram">Arc Diagram</option>
+                                    <option value="forceDirected">Force-Directed</option>
+                                    <option value="matrix">Matrix Chart</option>
+                                </optgroup>
+                                <optgroup label="Part-to-Whole">
+                                    <option value="stackedBar100">100% Stacked Bar</option>
+                                    <option value="stackedArea100">100% Stacked Area</option>
+                                    <option value="waffleChart">Waffle Chart</option>
+                                    <option value="pictograph">Pictograph</option>
+                                    <option value="nightingaleRose">Nightingale Rose</option>
+                                </optgroup>
+                                <optgroup label="KPI / Metrics">
+                                    <option value="kpiCard">KPI Card</option>
+                                    <option value="sparkline">Sparkline</option>
+                                    <option value="progressBar">Progress Bar</option>
+                                    <option value="radialProgress">Radial Progress</option>
+                                    <option value="metricTile">Metric Tile</option>
+                                </optgroup>
                             </select>
                         </div>
                         <div class="row g-2">
