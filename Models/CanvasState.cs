@@ -15,9 +15,13 @@ public class CanvasState
     [XmlIgnore]
     public List<ChartDefinition> Charts
     {
-        get => Pages?.Count > 0 ? Pages[Math.Clamp(ActivePageIndex, 0, Pages.Count - 1)].Charts : new();
-        set { if (Pages?.Count > 0) Pages[Math.Clamp(ActivePageIndex, 0, Pages.Count - 1)].Charts = value; }
+        get => Pages?.Count > 0 ? Pages[SafePageIndex].Charts : new();
+        set { if (Pages?.Count > 0) Pages[SafePageIndex].Charts = value; }
     }
+
+    private int SafePageIndex => Pages?.Count > 0
+        ? Math.Clamp(ActivePageIndex, 0, Pages.Count - 1)
+        : 0;
 }
 
 public class ReportPage
