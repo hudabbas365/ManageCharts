@@ -50,6 +50,7 @@
             <div class="panel-header">
                 <h6 class="mb-0"><i class="bi bi-collection me-2"></i>Chart Library</h6>
                 <span class="badge bg-primary">72</span>
+                <button id="toggle-library-panel" class="panel-toggle-btn ms-1" title="Collapse panel"><i class="bi bi-chevron-left"></i></button>
             </div>
             <div class="search-wrap p-2">
                 <div class="input-group input-group-sm">
@@ -88,6 +89,7 @@
         <!-- Right Panel: Properties -->
         <aside class="properties-panel">
             <div class="panel-header">
+                <button id="toggle-properties-panel" class="panel-toggle-btn me-1" title="Collapse panel"><i class="bi bi-chevron-right"></i></button>
                 <h6 class="mb-0"><i class="bi bi-sliders me-2"></i>Properties</h6>
             </div>
             <div id="properties-empty" class="empty-state-small">
@@ -240,6 +242,26 @@
                             <label class="form-label">Value Field</label>
                             <select id="prop-value-field" class="form-select form-select-sm field-select"></select>
                         </div>
+                        <div class="mb-2 chart-type-field" data-chart-types="mixedBarLine" style="display:none">
+                            <label class="form-label">Line Value Field</label>
+                            <select id="prop-line-value-field" class="form-select form-select-sm field-select"></select>
+                        </div>
+                        <div class="mb-2 chart-type-field" data-chart-types="scatter,bubble" style="display:none">
+                            <label class="form-label">X Field</label>
+                            <select id="prop-x-field" class="form-select form-select-sm field-select"></select>
+                        </div>
+                        <div class="mb-2 chart-type-field" data-chart-types="scatter,bubble" style="display:none">
+                            <label class="form-label">Y Field</label>
+                            <select id="prop-y-field" class="form-select form-select-sm field-select"></select>
+                        </div>
+                        <div class="mb-2 chart-type-field" data-chart-types="bubble" style="display:none">
+                            <label class="form-label">R (Size) Field</label>
+                            <select id="prop-r-field" class="form-select form-select-sm field-select"></select>
+                        </div>
+                        <div class="mb-2 chart-type-field" data-chart-types="stackedBar,groupedBar,stackedBar100,stackedArea100" style="display:none">
+                            <label class="form-label">Group By Field</label>
+                            <select id="prop-group-by-field" class="form-select form-select-sm field-select"></select>
+                        </div>
                         <div class="mb-2 form-check">
                             <input type="checkbox" id="prop-agg-enabled" class="form-check-input">
                             <label class="form-check-label" for="prop-agg-enabled">Enable Aggregation</label>
@@ -306,6 +328,13 @@
 
                 </div>
             </div>
+            <!-- Data Fields sub-panel -->
+            <div class="data-fields-panel">
+                <div class="panel-header">
+                    <h6 class="mb-0"><i class="bi bi-table me-2"></i>Data Fields</h6>
+                </div>
+                <div id="data-fields-list" class="data-fields-scroll"></div>
+            </div>
         </aside>
     </div>
 </div>
@@ -320,6 +349,19 @@
     const activePageIndex = @(ViewBag.ActivePageIndex ?? 0);
 
     document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('toggle-library-panel')?.addEventListener('click', function() {
+            const panel = document.querySelector('.library-panel');
+            panel.classList.toggle('collapsed');
+            const icon = this.querySelector('i');
+            icon.className = panel.classList.contains('collapsed') ? 'bi bi-chevron-right' : 'bi bi-chevron-left';
+        });
+        document.getElementById('toggle-properties-panel')?.addEventListener('click', function() {
+            const panel = document.querySelector('.properties-panel');
+            panel.classList.toggle('collapsed');
+            const icon = this.querySelector('i');
+            icon.className = panel.classList.contains('collapsed') ? 'bi bi-chevron-left' : 'bi bi-chevron-right';
+        });
+
         chartLibrary.init(chartLibraryData);
         canvasManager.init(initialCharts, pages, activePageIndex);
 

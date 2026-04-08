@@ -23,6 +23,8 @@ class PropertiesPanel {
         await this.loadFields(chartDef.datasetName);
         this.populate();
         this.bindAutoApply();
+        this.updateTypeSpecificFields(chartDef.chartType);
+        this.initFieldDropTargets();
     }
 
     async loadFields(datasetName) {
@@ -30,6 +32,7 @@ class PropertiesPanel {
             const resp = await fetch(`/api/data/${datasetName}/fields`);
             this.fields = await resp.json();
             this.updateFieldSelects();
+            this.renderDataFields();
         } catch(e) {
             this.fields = [];
         }
@@ -55,6 +58,11 @@ class PropertiesPanel {
         this.setVal('prop-height', c.height);
         this.setVal('prop-label-field', c.mapping?.labelField || '');
         this.setVal('prop-value-field', c.mapping?.valueField || '');
+        this.setVal('prop-line-value-field', c.mapping?.lineValueField || '');
+        this.setVal('prop-x-field', c.mapping?.xField || '');
+        this.setVal('prop-y-field', c.mapping?.yField || '');
+        this.setVal('prop-r-field', c.mapping?.rField || '');
+        this.setVal('prop-group-by-field', c.mapping?.groupByField || '');
         this.setVal('prop-agg-enabled', c.aggregation?.enabled || false, 'checkbox');
         this.setVal('prop-agg-function', c.aggregation?.function || 'SUM');
         this.setVal('prop-color-palette', this._resolveColorHex(c.style?.colorPalette));
@@ -110,6 +118,11 @@ class PropertiesPanel {
                 ...this.currentChart.mapping,
                 labelField: this.getVal('prop-label-field'),
                 valueField: this.getVal('prop-value-field'),
+                lineValueField: this.getVal('prop-line-value-field'),
+                xField: this.getVal('prop-x-field'),
+                yField: this.getVal('prop-y-field'),
+                rField: this.getVal('prop-r-field'),
+                groupByField: this.getVal('prop-group-by-field'),
             },
             aggregation: {
                 enabled: this.getVal('prop-agg-enabled', 'checkbox'),
@@ -179,6 +192,64 @@ class PropertiesPanel {
 
         form.addEventListener('change', this._autoApplyHandler);
         form.addEventListener('input', this._autoApplyInputHandler);
+
+        // Show/hide type-specific fields when chart type changes
+        const chartTypeEl = document.getElementById('prop-chart-type');
+        if (chartTypeEl) {
+            if (this._chartTypeChangeHandler) {
+                chartTypeEl.removeEventListener('change', this._chartTypeChangeHandler);
+            }
+            this._chartTypeChangeHandler = () => this.updateTypeSpecificFields(chartTypeEl.value);
+            chartTypeEl.addEventListener('change', this._chartTypeChangeHandler);
+        }
+    }
+
+    updateTypeSpecificFields(chartType) {
+        document.querySelectorAll('.chart-type-field').forEach(el => {
+            const types = (el.dataset.chartTypes || '').split(',').map(t => t.trim());
+            el.style.display = types.includes(chartType) ? '' : 'none';
+        });
+    }
+
+    renderDataFields() {
+        const container = document.getElementById('data-fields-list');
+        if (!container) return;
+        if (this.fields.length === 0) {
+            container.innerHTML = '';
+            return;
+        }
+        container.innerHTML = this.fields.map(f =>
+            `<div class="data-field-item" draggable="true" data-field="${escapeHtml(f)}">
+                <i class="bi bi-grip-vertical"></i>
+                <i class="bi bi-hash"></i>
+                <span>${escapeHtml(f)}</span>
+            </div>`
+        ).join('');
+
+        container.querySelectorAll('.data-field-item').forEach(item => {
+            item.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('fieldName', item.dataset.field);
+                e.dataTransfer.effectAllowed = 'copy';
+                item.classList.add('dragging');
+            });
+            item.addEventListener('dragend', () => item.classList.remove('dragging'));
+        });
+    }
+
+    initFieldDropTargets() {
+        document.querySelectorAll('.field-select').forEach(select => {
+            select.addEventListener('dragover', (e) => { e.preventDefault(); select.style.outline = '2px solid var(--primary)'; });
+            select.addEventListener('dragleave', () => { select.style.outline = ''; });
+            select.addEventListener('drop', (e) => {
+                e.preventDefault();
+                select.style.outline = '';
+                const fieldName = e.dataTransfer.getData('fieldName');
+                if (fieldName && [...select.options].some(o => o.value === fieldName)) {
+                    select.value = fieldName;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            });
+        });
     }
 }
 
