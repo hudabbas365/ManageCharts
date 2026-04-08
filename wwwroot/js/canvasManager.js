@@ -255,8 +255,10 @@ class CanvasManager {
                 document.removeEventListener('mousemove', onMouseMove);
                 document.removeEventListener('mouseup', onMouseUp);
 
-                const x = Math.max(0, ev.clientX - containerRect.left - offsetX);
-                const y = Math.max(0, ev.clientY - containerRect.top - offsetY);
+                const sl = scrollEl ? scrollEl.scrollLeft : 0;
+                const st = scrollEl ? scrollEl.scrollTop  : 0;
+                const x = Math.max(0, ev.clientX - containerBase.left + (sl - scrollLeft) - offsetX);
+                const y = Math.max(0, ev.clientY - containerBase.top  + (st - scrollTop)  - offsetY);
                 chartDef.posX = Math.round(x);
                 chartDef.posY = Math.round(y);
 

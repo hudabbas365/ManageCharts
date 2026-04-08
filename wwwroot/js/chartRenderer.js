@@ -869,38 +869,36 @@ class ChartRenderer {
         const palette = style.colorPalette || 'default';
         const colors = this.getColors(palette, 10);
 
-        const dispatch = {
-            treemap:        () => this.renderTreemap(chartDef, container, data, colors, h),
-            heatmap:        () => this.renderHeatmap(chartDef, container, data, colors, h),
-            sankey:         () => this.renderSankey(chartDef, container, data, colors, h),
-            sunburst:       () => this.renderSunburst(chartDef, container, data, colors, h),
-            boxPlot:        () => this.renderBoxPlot(chartDef, container, data, colors, h),
-            violin:         () => this.renderViolin(chartDef, container, data, colors, h),
-            stemLeaf:       () => this.renderStemLeaf(chartDef, container, data, colors, h),
-            candlestick:    () => this.renderCandlestick(chartDef, container, data, colors, h),
-            ohlc:           () => this.renderOHLC(chartDef, container, data, colors, h),
-            eventTimeline:  () => this.renderEventTimeline(chartDef, container, data, colors, h),
-            choropleth:     () => this.renderGeoPlaceholder(chartDef, container, data, colors, h, 'Choropleth Map'),
-            bubbleMap:      () => this.renderGeoPlaceholder(chartDef, container, data, colors, h, 'Bubble Map'),
-            heatMapGeo:     () => this.renderGeoPlaceholder(chartDef, container, data, colors, h, 'Geographic Heat Map'),
-            flowMap:        () => this.renderGeoPlaceholder(chartDef, container, data, colors, h, 'Flow Map'),
-            spikeMap:       () => this.renderGeoPlaceholder(chartDef, container, data, colors, h, 'Spike Map'),
-            networkGraph:   () => this.renderNetworkGraph(chartDef, container, data, colors, h),
-            chordDiagram:   () => this.renderChordDiagram(chartDef, container, data, colors, h),
-            arcDiagram:     () => this.renderArcDiagram(chartDef, container, data, colors, h),
-            forceDirected:  () => this.renderForceDirected(chartDef, container, data, colors, h),
-            matrix:         () => this.renderMatrix(chartDef, container, data, colors, h),
-            waffleChart:    () => this.renderWaffleChart(chartDef, container, data, colors, h),
-            pictograph:     () => this.renderPictograph(chartDef, container, data, colors, h),
-            kpiCard:        () => this.renderKpiCard(chartDef, container, data, colors, h),
-            metricTile:     () => this.renderMetricTile(chartDef, container, data, colors, h),
-            marimekko:      () => this.renderMarimekko(chartDef, container, data, colors, h),
-            dumbbell:       () => this.renderDumbbell(chartDef, container, data, colors, h),
-        };
-        // Validate ct against the known dispatch table; extract and type-check before calling
-        const renderFn = Object.prototype.hasOwnProperty.call(dispatch, ct) ? dispatch[ct] : null;
-        if (typeof renderFn === 'function') renderFn();
-        else this.renderPlaceholder(chartDef, container, colors, h);
+        // Explicit switch avoids dynamic property access with user-controlled input
+        switch (ct) {
+            case 'treemap':      this.renderTreemap(chartDef, container, data, colors, h); break;
+            case 'heatmap':      this.renderHeatmap(chartDef, container, data, colors, h); break;
+            case 'sankey':       this.renderSankey(chartDef, container, data, colors, h); break;
+            case 'sunburst':     this.renderSunburst(chartDef, container, data, colors, h); break;
+            case 'boxPlot':      this.renderBoxPlot(chartDef, container, data, colors, h); break;
+            case 'violin':       this.renderViolin(chartDef, container, data, colors, h); break;
+            case 'stemLeaf':     this.renderStemLeaf(chartDef, container, data, colors, h); break;
+            case 'candlestick':  this.renderCandlestick(chartDef, container, data, colors, h); break;
+            case 'ohlc':         this.renderOHLC(chartDef, container, data, colors, h); break;
+            case 'eventTimeline': this.renderEventTimeline(chartDef, container, data, colors, h); break;
+            case 'choropleth':   this.renderGeoPlaceholder(chartDef, container, data, colors, h, 'Choropleth Map'); break;
+            case 'bubbleMap':    this.renderGeoPlaceholder(chartDef, container, data, colors, h, 'Bubble Map'); break;
+            case 'heatMapGeo':   this.renderGeoPlaceholder(chartDef, container, data, colors, h, 'Geographic Heat Map'); break;
+            case 'flowMap':      this.renderGeoPlaceholder(chartDef, container, data, colors, h, 'Flow Map'); break;
+            case 'spikeMap':     this.renderGeoPlaceholder(chartDef, container, data, colors, h, 'Spike Map'); break;
+            case 'networkGraph': this.renderNetworkGraph(chartDef, container, data, colors, h); break;
+            case 'chordDiagram': this.renderChordDiagram(chartDef, container, data, colors, h); break;
+            case 'arcDiagram':   this.renderArcDiagram(chartDef, container, data, colors, h); break;
+            case 'forceDirected': this.renderForceDirected(chartDef, container, data, colors, h); break;
+            case 'matrix':       this.renderMatrix(chartDef, container, data, colors, h); break;
+            case 'waffleChart':  this.renderWaffleChart(chartDef, container, data, colors, h); break;
+            case 'pictograph':   this.renderPictograph(chartDef, container, data, colors, h); break;
+            case 'kpiCard':      this.renderKpiCard(chartDef, container, data, colors, h); break;
+            case 'metricTile':   this.renderMetricTile(chartDef, container, data, colors, h); break;
+            case 'marimekko':    this.renderMarimekko(chartDef, container, data, colors, h); break;
+            case 'dumbbell':     this.renderDumbbell(chartDef, container, data, colors, h); break;
+            default:             this.renderPlaceholder(chartDef, container, colors, h); break;
+        }
     }
 
     _makeCanvas(container, h) {
@@ -1244,16 +1242,17 @@ class ChartRenderer {
         container.style.cssText += 'background:#f8f9fa;padding:12px;overflow:auto;';
         let html = `<div style="font-family:Inter,sans-serif">
             <div style="text-align:center;color:#4A90D9;font-size:42px;margin-bottom:6px">🗺️</div>
-            <div style="text-align:center;font-size:12px;font-weight:600;color:#2c3e50;margin-bottom:10px">${typeName} — ${this._esc(chartDef.title||'Geographic')}</div>
+            <div style="text-align:center;font-size:12px;font-weight:600;color:#2c3e50;margin-bottom:10px">${this._esc(typeName)} — ${this._esc(chartDef.title||'Geographic')}</div>
             <div style="font-size:10px;color:#8492a6;text-align:center;margin-bottom:10px">Geographic visualization (requires map library)</div>`;
         lbls.slice(0,6).forEach((l,i) => {
-            const pct = Math.round(vals[i]/maxV*100);
+            const pct = Math.max(0, Math.min(100, Math.round(vals[i]/maxV*100)));
+            const safeVal = Math.round(Number(vals[i]) || 0);
             html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
                 <div style="width:60px;font-size:10px;color:#333;text-align:right">${this._esc(String(l))}</div>
                 <div style="flex:1;height:12px;background:#e9ecef;border-radius:6px;overflow:hidden">
                     <div style="height:100%;width:${pct}%;background:${colors[i%colors.length]};border-radius:6px"></div>
                 </div>
-                <div style="width:28px;font-size:10px;color:#666">${vals[i]}</div>
+                <div style="width:28px;font-size:10px;color:#666">${safeVal}</div>
             </div>`;
         });
         html += '</div>';
@@ -1416,8 +1415,9 @@ class ChartRenderer {
             const maxRow = Math.max(...row);
             html += `<tr><td style="padding:4px;font-weight:600;color:${colors[i%colors.length]};white-space:nowrap">${this._esc(lbls[i])}</td>` +
                 row.map((v,j) => {
-                    const alpha = (0.1 + v/100*0.9).toFixed(2);
-                    return `<td style="padding:4px;text-align:center;background:${colors[(i+j)%colors.length]}${Math.round(alpha*255).toString(16).padStart(2,'0')};border-radius:3px">${v}</td>`;
+                    const safeV = Math.round(Number(v) || 0);
+                    const alpha = (0.1 + safeV/100*0.9).toFixed(2);
+                    return `<td style="padding:4px;text-align:center;background:${colors[(i+j)%colors.length]}${Math.round(parseFloat(alpha)*255).toString(16).padStart(2,'0')};border-radius:3px">${safeV}</td>`;
                 }).join('') + '</tr>';
         });
         html += '</table></div>';
@@ -1428,7 +1428,7 @@ class ChartRenderer {
         const lbls = (data.labels||['A','B','C','D']).slice(0,4);
         const vals = lbls.map((_,i) => Math.abs((data.values||[])[i]||Math.round(10+Math.random()*40)));
         const total = vals.reduce((s,v)=>s+v,0);
-        const pcts = vals.map(v => Math.round(v/total*100));
+        const pcts = vals.map(v => Math.max(0, Math.min(100, Math.round(v/total*100))));
         const cells = 100, cellsPerRow = 10;
         let colored = [];
         pcts.forEach((p,i) => { for (let k=0;k<p;k++) colored.push(i); });
