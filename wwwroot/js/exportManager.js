@@ -157,7 +157,7 @@ class ExportManager {
             pdf.line(marginX, pageH - 10, pageW - marginX, pageH - 10);
         }
 
-        pdf.save(`${canvasName.replace(/[^a-z0-9]/gi,'_')}_report.pdf`);
+        pdf.save(`${canvasName.replace(/[^a-z0-9\-_]/gi,'_')}_report.pdf`);
     }
 
     exportJson() {

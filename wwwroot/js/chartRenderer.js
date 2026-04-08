@@ -22,6 +22,14 @@ class ChartRenderer {
         ]);
     }
 
+    // Safe HTML escaping — works even if the global escapeHtml is not loaded yet
+    _esc(str) {
+        if (typeof escapeHtml === 'function') return escapeHtml(str);
+        const d = document.createElement('div');
+        d.appendChild(document.createTextNode(String(str ?? '')));
+        return d.innerHTML;
+    }
+
     getColors(palette, count) {
         const colors = this.colorPalettes[palette] || this.colorPalettes.default;
         const result = [];
@@ -225,7 +233,7 @@ class ChartRenderer {
         for (let i = 0; i < vals.length; i++) {
             const v = vals[i];
             if (i === 0 || i === vals.length - 1) {
-                floatData.push([0, v < 0 ? v : v]);
+                floatData.push([0, v]);
                 bgColors.push('#4A90D9');
             } else {
                 const base = cumulative;
@@ -889,7 +897,8 @@ class ChartRenderer {
             marimekko:      () => this.renderMarimekko(chartDef, container, data, colors, h),
             dumbbell:       () => this.renderDumbbell(chartDef, container, data, colors, h),
         };
-        if (dispatch[ct]) dispatch[ct]();
+        // Use hasOwnProperty to prevent prototype chain dispatch with user-controlled input
+        if (Object.prototype.hasOwnProperty.call(dispatch, ct)) dispatch[ct]();
         else this.renderPlaceholder(chartDef, container, colors, h);
     }
 
@@ -1118,9 +1127,12 @@ class ChartRenderer {
             (stems[stem]||(stems[stem]=[])).push(v%10);
         });
         let html = `<div style="font-family:monospace;font-size:13px;line-height:1.6;color:#333">
-            <div style="font-weight:600;margin-bottom:6px;font-family:Inter,sans-serif;font-size:12px">Stem &amp; Leaf Plot — ${chartDef.title||''}</div>`;
+            <div style="font-weight:600;margin-bottom:6px;font-family:Inter,sans-serif;font-size:12px">Stem &amp; Leaf Plot — ${this._esc(chartDef.title||'')}</div>`;
         Object.keys(stems).sort((a,b)=>+a-+b).forEach(stem => {
-            html += `<div><span style="display:inline-block;width:28px;text-align:right;color:${colors[0]};font-weight:600">${stem}</span><span style="color:#999;margin:0 6px">|</span>${stems[stem].join(' ')}</div>`;
+            // stem is a numeric key; leaf values are single digits — no user HTML
+            const safeStem = parseInt(stem, 10);
+            const safeLeaves = stems[stem].map(d => parseInt(d, 10)).join(' ');
+            html += `<div><span style="display:inline-block;width:28px;text-align:right;color:${colors[0]};font-weight:600">${safeStem}</span><span style="color:#999;margin:0 6px">|</span>${safeLeaves}</div>`;
         });
         html += '</div>';
         container.innerHTML = html;
@@ -1215,8 +1227,8 @@ class ChartRenderer {
             html += `<div style="position:relative;margin-bottom:18px;display:flex;align-items:flex-start;gap:10px">
                 <div style="position:absolute;left:-18px;top:3px;width:12px;height:12px;border-radius:50%;background:${ev.color};border:2px solid #fff;box-shadow:0 0 0 2px ${ev.color}44"></div>
                 <div>
-                    <div style="font-size:12px;font-weight:600;color:#2c3e50">${escapeHtml(ev.label)}</div>
-                    <div style="font-size:11px;color:#8492a6">${escapeHtml(String(ev.val))}</div>
+                    <div style="font-size:12px;font-weight:600;color:#2c3e50">${this._esc(ev.label)}</div>
+                    <div style="font-size:11px;color:#8492a6">${this._esc(String(ev.val))}</div>
                 </div>
             </div>`;
         });
@@ -1231,12 +1243,12 @@ class ChartRenderer {
         container.style.cssText += 'background:#f8f9fa;padding:12px;overflow:auto;';
         let html = `<div style="font-family:Inter,sans-serif">
             <div style="text-align:center;color:#4A90D9;font-size:42px;margin-bottom:6px">🗺️</div>
-            <div style="text-align:center;font-size:12px;font-weight:600;color:#2c3e50;margin-bottom:10px">${typeName} — ${escapeHtml(chartDef.title||'Geographic')}</div>
+            <div style="text-align:center;font-size:12px;font-weight:600;color:#2c3e50;margin-bottom:10px">${typeName} — ${this._esc(chartDef.title||'Geographic')}</div>
             <div style="font-size:10px;color:#8492a6;text-align:center;margin-bottom:10px">Geographic visualization (requires map library)</div>`;
         lbls.slice(0,6).forEach((l,i) => {
             const pct = Math.round(vals[i]/maxV*100);
             html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px">
-                <div style="width:60px;font-size:10px;color:#333;text-align:right">${escapeHtml(String(l))}</div>
+                <div style="width:60px;font-size:10px;color:#333;text-align:right">${this._esc(String(l))}</div>
                 <div style="flex:1;height:12px;background:#e9ecef;border-radius:6px;overflow:hidden">
                     <div style="height:100%;width:${pct}%;background:${colors[i%colors.length]};border-radius:6px"></div>
                 </div>
@@ -1396,12 +1408,12 @@ class ChartRenderer {
         const matrix = Array.from({length:n}, (_,i) => Array.from({length:n}, (_,j) => Math.round(Math.random()*100)));
         container.style.cssText += 'background:#fff;padding:12px;overflow:auto;';
         let html = `<div style="font-size:11px;font-family:Inter,sans-serif">
-            <div style="margin-bottom:8px;font-weight:600;color:#2c3e50">${escapeHtml(chartDef.title||'Matrix Chart')}</div>
+            <div style="margin-bottom:8px;font-weight:600;color:#2c3e50">${this._esc(chartDef.title||'Matrix Chart')}</div>
             <table style="border-collapse:collapse;font-size:10px">
-            <tr><th style="padding:4px"></th>${lbls.map(l=>`<th style="padding:4px;color:${colors[0]};text-align:center">${escapeHtml(l)}</th>`).join('')}</tr>`;
+            <tr><th style="padding:4px"></th>${lbls.map(l=>`<th style="padding:4px;color:${colors[0]};text-align:center">${this._esc(l)}</th>`).join('')}</tr>`;
         matrix.forEach((row,i) => {
             const maxRow = Math.max(...row);
-            html += `<tr><td style="padding:4px;font-weight:600;color:${colors[i%colors.length]};white-space:nowrap">${escapeHtml(lbls[i])}</td>` +
+            html += `<tr><td style="padding:4px;font-weight:600;color:${colors[i%colors.length]};white-space:nowrap">${this._esc(lbls[i])}</td>` +
                 row.map((v,j) => {
                     const alpha = (0.1 + v/100*0.9).toFixed(2);
                     return `<td style="padding:4px;text-align:center;background:${colors[(i+j)%colors.length]}${Math.round(alpha*255).toString(16).padStart(2,'0')};border-radius:3px">${v}</td>`;
@@ -1430,7 +1442,7 @@ class ChartRenderer {
         gridHtml += '</div>';
         let legend = `<div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center">`;
         lbls.forEach((l,i) => {
-            legend += `<div style="display:flex;align-items:center;gap:4px;font-size:11px;font-family:Inter,sans-serif"><div style="width:10px;height:10px;border-radius:2px;background:${colors[i%colors.length]}"></div>${escapeHtml(l)} (${pcts[i]}%)</div>`;
+            legend += `<div style="display:flex;align-items:center;gap:4px;font-size:11px;font-family:Inter,sans-serif"><div style="width:10px;height:10px;border-radius:2px;background:${colors[i%colors.length]}"></div>${this._esc(l)} (${pcts[i]}%)</div>`;
         });
         legend += '</div>';
         container.innerHTML = gridHtml + legend;
@@ -1442,12 +1454,12 @@ class ChartRenderer {
         const icons = ['👤','🏠','📦','💰','⭐','🎯','🏆','📊'];
         const maxVal = Math.max(...vals);
         container.style.cssText += 'background:#fff;padding:12px;overflow:auto;';
-        let html = `<div style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:#2c3e50;margin-bottom:10px">${escapeHtml(chartDef.title||'Pictograph')}</div>`;
+        let html = `<div style="font-family:Inter,sans-serif;font-size:12px;font-weight:600;color:#2c3e50;margin-bottom:10px">${this._esc(chartDef.title||'Pictograph')}</div>`;
         lbls.forEach((l, i) => {
             const icon = icons[i % icons.length];
             const n = vals[i];
             html += `<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-                <div style="width:70px;font-size:10px;color:#555;text-align:right">${escapeHtml(l)}</div>
+                <div style="width:70px;font-size:10px;color:#555;text-align:right">${this._esc(l)}</div>
                 <div style="flex:1;font-size:18px;line-height:1">${icon.repeat(n)}</div>
                 <div style="font-size:10px;color:#8492a6;width:24px">${n}</div>
             </div>`;
@@ -1462,7 +1474,7 @@ class ChartRenderer {
         const up = change >= 0;
         container.style.cssText += 'background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;';
         container.innerHTML = `<div style="text-align:center;font-family:Inter,sans-serif;padding:16px">
-            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#8492a6;margin-bottom:8px">${escapeHtml(chartDef.title||'KPI')}</div>
+            <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:#8492a6;margin-bottom:8px">${this._esc(chartDef.title||'KPI')}</div>
             <div style="font-size:42px;font-weight:700;color:${colors[0]};line-height:1">${typeof val==='number'?val.toLocaleString():val}</div>
             <div style="margin-top:8px;font-size:14px;color:${up?'#4CAF50':'#E87C3E'};font-weight:600">
                 ${up?'▲':'▼'} ${Math.abs(change)}% vs prior period
@@ -1483,7 +1495,7 @@ class ChartRenderer {
             <div style="background:#fff;border-radius:8px;padding:12px;box-shadow:0 1px 4px rgba(0,0,0,0.07)">
                 <div style="font-size:18px">${m.icon}</div>
                 <div style="font-size:18px;font-weight:700;color:${m.color};line-height:1.2;margin-top:4px">${typeof m.val==='number'?m.val.toLocaleString():m.val}</div>
-                <div style="font-size:10px;color:#8492a6;margin-top:2px">${escapeHtml(m.label)}</div>
+                <div style="font-size:10px;color:#8492a6;margin-top:2px">${this._esc(m.label)}</div>
             </div>`).join('');
     }
 
@@ -1566,8 +1578,8 @@ class ChartRenderer {
         container.style.cssText += 'background:#f8f9fa;display:flex;flex-direction:column;align-items:center;justify-content:center;';
         container.innerHTML = `<div style="text-align:center;font-family:Inter,sans-serif;padding:20px">
             <div style="font-size:36px;margin-bottom:8px">📊</div>
-            <div style="font-size:13px;font-weight:600;color:#2c3e50">${escapeHtml(chartDef.title||chartDef.chartType)}</div>
-            <div style="font-size:11px;color:#8492a6;margin-top:4px">${escapeHtml(chartDef.chartType)}</div>
+            <div style="font-size:13px;font-weight:600;color:#2c3e50">${this._esc(chartDef.title||chartDef.chartType)}</div>
+            <div style="font-size:11px;color:#8492a6;margin-top:4px">${this._esc(chartDef.chartType)}</div>
         </div>`;
     }
 
