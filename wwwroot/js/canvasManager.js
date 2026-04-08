@@ -394,7 +394,7 @@ class CanvasManager {
     }
 
     async addPage() {
-        const newPage = { name: `Page ${this.pages.length + 1}`, charts: [] };
+        const newPage = { name: this._getNextPageName(), charts: [] };
         this.pages.push(newPage);
         try {
             const resp = await fetch('/api/page/add', { method: 'POST' });
@@ -406,6 +406,17 @@ class CanvasManager {
             console.warn('Could not persist page add:', err);
         }
         this.switchPage(this.pages.length - 1);
+    }
+
+    _getNextPageName() {
+        const usedNumbers = new Set();
+        this.pages.forEach(p => {
+            const match = p.name.match(/^Page\s+(\d+)$/i);
+            if (match) usedNumbers.add(parseInt(match[1]));
+        });
+        let n = 1;
+        while (usedNumbers.has(n)) n++;
+        return `Page ${n}`;
     }
 
     renamePage(index) {

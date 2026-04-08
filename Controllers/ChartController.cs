@@ -2,6 +2,7 @@ using ManageCharts.Models;
 using ManageCharts.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 
 namespace ManageCharts.Controllers;
@@ -12,6 +13,7 @@ public class ChartController : ControllerBase
 {
     private readonly IChartService _chartService;
     private const string SessionKey = "canvas_state";
+    private static readonly Regex _pageNameRegex = new Regex(@"^Page\s+(\d+)$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public ChartController(IChartService chartService)
     {
@@ -119,7 +121,14 @@ public class ChartController : ControllerBase
     public IActionResult AddPage()
     {
         var canvas = GetCanvas();
-        var newPage = new ReportPage { Name = $"Page {canvas.Pages.Count + 1}" };
+        var usedNumbers = canvas.Pages
+            .Select(p => _pageNameRegex.Match(p.Name))
+            .Where(m => m.Success)
+            .Select(m => int.Parse(m.Groups[1].Value))
+            .ToHashSet();
+        int nextNum = 1;
+        while (usedNumbers.Contains(nextNum)) nextNum++;
+        var newPage = new ReportPage { Name = $"Page {nextNum}" };
         canvas.Pages.Add(newPage);
         canvas.ActivePageIndex = canvas.Pages.Count - 1;
         SaveCanvas(canvas);

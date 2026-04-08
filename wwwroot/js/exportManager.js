@@ -206,6 +206,8 @@ class ExportManager {
         if (window.canvasManager) {
             canvasManager.pages = data.pages || [{ name: 'Page 1', charts: data.charts || [] }];
             canvasManager.activePageIndex = data.activePageIndex || 0;
+            // Renumber pages sequentially after import
+            canvasManager.pages.forEach((p, i) => { p.name = `Page ${i + 1}`; });
             canvasManager.charts = canvasManager.pages[canvasManager.activePageIndex].charts || [];
             canvasManager.renderAll();
             canvasManager.renderPageTabs();
